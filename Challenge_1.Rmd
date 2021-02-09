@@ -48,22 +48,69 @@ number_of_products; product_dist
 ### Transactional data
 
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Question 2: Plot interpretation 
+a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that
+might be so?
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you might be the cause?
 
-```{r cars}
-summary(cars)
+
+### Question 3: Distribution of income 
+
+
+
+### Question 4: Boxplot interpretation 
+
+
+
+### Question 5: Location score
+In this exercise we will build a location score that tells us what’s the average
+daily items per machine depending on the location it is placed. This model could be used to 
+a) Decide in which locations to place new machines 
+b) Construct a benchmark for each machine: how much should it sell according to its location? This can be used to detect problems in machines (i.e. illumination, bad placement within a station etc.)
+
+
+#### Significant variables
+Do all variables show statistical significance? Which ones doesn’t? How do you know?
+Hint: Recall that to check the parameters of a glm model called “model1” you need
+to run summary(model1)
+
+```{r}
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+#### Linear model 
+Build another linear model but this time instead of using the variables
+“total_number_of_routes_600 use the log of that variable in base 10 calling it
+“log_transport”. Does this new variable show statistical significance?
+```{r}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+#### How many daily items less do small machines sell all other factors remaining equal?
+```{r}
+
+```
+
+#### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
+```{r}
+
+```
+
+#### Top and bottom ratio
+Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the
+top20%/bottom20% ratio?
+
+
+
+#### Choice
+Given the following 2 locations for a big machine:
+i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no
+nearby machines
+ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes
+nearby, 3 nearby Vendex machines
+Which location would you choose and why?
+
