@@ -53,7 +53,7 @@ number_of_products; product_dist
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that
 might be so?
 
-b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you might be the cause?
+b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?
 
 
 ### Question 3: Distribution of income 
