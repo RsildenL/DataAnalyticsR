@@ -4,4 +4,4 @@
 .Ruserdata
 *.nc
 *.DS_Store
-.transactional_data
+.Data\transactional_data.csv
