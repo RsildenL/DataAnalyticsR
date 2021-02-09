@@ -1,7 +1,7 @@
 ---
 title: "Challenge_1"
 subtitle: "Data Analytics with R"
-author: "Rebecca Silden Langlo, Afonso Penalva"
+author: "Rebecca Silden Langlo, Afonso Penalva & others"
 date: "2/9/2021"
 output: html_document
 ---
