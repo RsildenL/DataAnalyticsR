@@ -6,12 +6,6 @@ date: "2/9/2021"
 output: html_document
 ---
 
-abc
-abc
-
-abc + 123
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
