@@ -1,5 +1,6 @@
 ---
 title: "Challenge_1"
+subtitle: "Data Analytics with R"
 author: "Rebecca Silden Langlo"
 date: "2/9/2021"
 output: html_document
@@ -7,6 +8,14 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+```
+
+
+```{r}
+machine_data <- fread("Data/machine_data.csv")
+product_data <- fread("Data/product_data.csv")
+
 ```
 
 ## R Markdown
