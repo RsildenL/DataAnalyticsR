@@ -1,5 +1,5 @@
 ---
-title: "Challenge_1"
+title: "Challenge 1: General Overview and Data Treatment"
 subtitle: "Data Analytics with R"
 author: "Rebecca Silden Langlo, Afonso Penalva & others" 
 date: "2/9/2021"
@@ -17,6 +17,36 @@ machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
 
 ```
+
+
+## Question 1: General overview of the data
+### Machines
+```{r}
+number_of_machines <- uniqueN(machine_data$machine)
+
+machine_dist <- machine_data[,.(.N), by=small_machine]
+machine_dist[,percent := N/number_of_machines]
+
+machine_dist_by_location <- machine_data[,.(.N),by = .(small_machine, location_type)]
+machine_dist_by_location [,percent := N/number_of_machines]
+
+number_of_machines; machine_dist; machine_dist_by_location
+```
+
+### Products 
+```{r}
+
+product_names <- unique(product_data$product_name)
+number_of_products <- uniqueN(product_data$product_name)
+number_of_products
+
+product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
+
+number_of_products; product_dist
+```
+
+### Transactional data
+
 
 ## R Markdown
 
