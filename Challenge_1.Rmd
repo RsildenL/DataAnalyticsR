@@ -15,7 +15,7 @@ library(data.table)
 ```{r}
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
-
+transaction_data <- fread("Data/transactional_data.csv")
 ```
 
 
@@ -23,14 +23,23 @@ product_data <- fread("Data/product_data.csv")
 ### Machines
 ```{r}
 number_of_machines <- uniqueN(machine_data$machine)
-
+number_of_machines
+```
+```{r}
 machine_dist <- machine_data[,.(.N), by=small_machine]
 machine_dist[,percent := N/number_of_machines]
 
+machine_dist$type <- ifelse(machine_dist$small_machine == 1, 
+                            yes = "small", no = "large")
+machine_dist
+```
+```{r}
 machine_dist_by_location <- machine_data[,.(.N),by = .(small_machine, location_type)]
 machine_dist_by_location [,percent := N/number_of_machines]
 
-number_of_machines; machine_dist; machine_dist_by_location
+machine_dist_by_location$type <- ifelse(machine_dist_by_location$small_machine == 1,
+                            yes = "small", no = "large")
+machine_dist_by_location
 ```
 
 ### Products 
@@ -38,12 +47,17 @@ number_of_machines; machine_dist; machine_dist_by_location
 
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
-number_of_products
 
 product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
 
 number_of_products; product_dist
 ```
+
+```{r}
+sort(product_dist, )
+
+```
+
 
 ### Transactional data
 
