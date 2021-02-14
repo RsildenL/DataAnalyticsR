@@ -75,13 +75,14 @@ sales_dist
 
 sales_dist2 <- sales_dist[,.(avg_sales = mean(mean_sales)), by = small_machine]
 sales_dist2
+plot(sales_dist)
 ```
 
 
-
-
-
 ## Question 2: Plot interpretation 
+![Caption](Q2.JPG)
+
+
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that
 might be so?
 
@@ -93,8 +94,14 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 
 
 ### Question 4: Boxplot interpretation 
+![Boxplot](Q4.JPG)
+```{r}
+boxplot(machine_data$num_hotels)
+summary(machine_data$num_hotels)
+```
 
-
+According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. 
+The 3rd quantile is one, .... 
 
 ### Question 5: Location score
 In this exercise we will build a location score that tells us what’s the average
