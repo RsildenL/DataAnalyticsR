@@ -53,13 +53,14 @@ product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
 number_of_products; product_dist
 ```
 
-```{r}
-sort(product_dist, )
-
-```
-
 
 ### Transactional data
+```{r}
+library("openair")
+transaction_data$date <- as.Date(transaction_data$date)
+transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
+
+```
 
 
 
