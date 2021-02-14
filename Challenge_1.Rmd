@@ -15,6 +15,7 @@ library(data.table)
 ```{r}
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
+ # we all need to include the transactional_data file in the Data folder, but we can't push it to the git repository
 transaction_data <- fread("Data/transactional_data.csv")
 ```
 
@@ -59,9 +60,25 @@ number_of_products; product_dist
 library("openair")
 transaction_data$date <- as.Date(transaction_data$date)
 transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
-
 ```
 
+
+```{r}
+transactions_march[,.(.N), by=machine]
+transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
+
+uniqueN(transactions_march_dist$machine)
+uniqueN(transactions_march_dist$date)
+
+sales_dist <- transactions_march_dist[,.(mean_sales = mean(N)), by=machine]
+sales_dist
+```
+
+
+```{r}
+xx <- machine_data[,.(machine, small_machine)]
+xx
+```
 
 
 ## Question 2: Plot interpretation 
