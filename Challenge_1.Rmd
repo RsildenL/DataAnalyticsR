@@ -64,21 +64,21 @@ transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
 
 
 ```{r}
-transactions_march[,.(.N), by=machine]
 transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
 
 uniqueN(transactions_march_dist$machine)
 uniqueN(transactions_march_dist$date)
 
 sales_dist <- transactions_march_dist[,.(mean_sales = mean(N)), by=machine]
+sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
 sales_dist
+
+sales_dist2 <- sales_dist[,.(avg_sales = mean(mean_sales)), by = small_machine]
+sales_dist2
 ```
 
 
-```{r}
-xx <- machine_data[,.(machine, small_machine)]
-xx
-```
+
 
 
 ## Question 2: Plot interpretation 
