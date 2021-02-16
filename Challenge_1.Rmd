@@ -123,9 +123,9 @@ Do all variables show statistical significance? Which ones doesn’t? How do you
 Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)
 
 ```{r}
-glm( ~ small_machine + income_average + total_number_of_routes_600
-     + num_hotels_45 + num_vendex_nearby_300, 
-     data = machine_data)
+#glm( ~ small_machine + income_average + total_number_of_routes_600
+#     + num_hotels_45 + num_vendex_nearby_300, 
+ #    data = machine_data)
 ```
 
 
