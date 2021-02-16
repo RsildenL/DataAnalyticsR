@@ -26,18 +26,18 @@ transaction_data <- fread("Data/transactional_data.csv")
 number_of_machines <- uniqueN(machine_data$machine)
 number_of_machines
 ```
+
 ```{r}
 machine_dist <- machine_data[,.(.N), by=small_machine]
 machine_dist[,percent := N/number_of_machines]
-
 machine_dist$type <- ifelse(machine_dist$small_machine == 1, 
                             yes = "small", no = "large")
 machine_dist
 ```
+
 ```{r}
 machine_dist_by_location <- machine_data[,.(.N),by = .(small_machine, location_type)]
 machine_dist_by_location [,percent := N/number_of_machines]
-
 machine_dist_by_location$type <- ifelse(machine_dist_by_location$small_machine == 1,
                             yes = "small", no = "large")
 machine_dist_by_location
@@ -48,7 +48,6 @@ machine_dist_by_location
 
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
-
 product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
 
 number_of_products; product_dist
@@ -101,10 +100,9 @@ boxplot(machine_data$num_hotels)
 summary(machine_data$num_hotels)
 ```
 
-According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. 
-The 3rd quantile is one, .... 
-
-
+According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. The median is also in this case the same as the minimum and 1st quantile. 
+The 3rd quantile is one, while the mean of the observations is 2. This is due to that most of the vending machines not have hotels nearby, while about half (4th quantile) of those who have hotels nearby seems to have many hotels, with the maximum of 79 hotels nearby.
+--> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
 
 ### Question 5: Location score
 In this exercise we will build a location score that tells us what’s the average daily items per machine depending on the location it is placed. This model could be used to 
