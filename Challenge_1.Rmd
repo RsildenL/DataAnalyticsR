@@ -45,7 +45,6 @@ machine_dist_by_location
 
 ### Products 
 ```{r}
-
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
 product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
@@ -82,9 +81,22 @@ plot(sales_dist)
 ## Question 2: Plot interpretation 
 ![Caption](Q2.JPG)
 
-
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that
 might be so?
+
+* weekly seasonality (spikes on weekends?)
+* drinks: an linear increasing trend (ANOVA?)
+* snack: flat/no trend
+
+```{r}
+transaction_product <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
+merged_data <- merge(transaction_product, machine_data, by= "machine")
+```
+
+```{r}
+
+```
+
 
 b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?
 
