@@ -19,6 +19,11 @@ product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
 ```
 
+```{r}
+transaction_product <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
+merged_data <- merge(transaction_product, machine_data, by= "machine")
+```
+
 
 ## Question 1: General overview of the data
 ### Machines
@@ -88,10 +93,6 @@ might be so?
 * drinks: an linear increasing trend (ANOVA?)
 * snack: flat/no trend
 
-```{r}
-transaction_product <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
-merged_data <- merge(transaction_product, machine_data, by= "machine")
-```
 
 ```{r}
 
