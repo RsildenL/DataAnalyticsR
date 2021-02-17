@@ -12,6 +12,7 @@ library(data.table)
 ```
 
 
+
 ```{r}
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")

@@ -10,7 +10,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Rebecca Silden Langlo, Afonso Penalva &amp; others" />
+<meta name="author" content="Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer &amp; others" />
 
 
 <title>Challenge 1: General Overview and Data Treatment</title>
@@ -364,7 +364,7 @@ summary {
 
 <h1 class="title toc-ignore">Challenge 1: General Overview and Data Treatment</h1>
 <h3 class="subtitle">Data Analytics with R</h3>
-<h4 class="author">Rebecca Silden Langlo, Afonso Penalva &amp; others</h4>
+<h4 class="author">Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer &amp; others</h4>
 <h4 class="date">2/9/2021</h4>
 
 </div>
@@ -374,6 +374,8 @@ summary {
 product_data &lt;- fread(&quot;Data/product_data.csv&quot;)
  # we all need to include the transactional_data file in the Data folder, but we can&#39;t push it to the git repository
 transaction_data &lt;- fread(&quot;Data/transactional_data.csv&quot;)</code></pre>
+<pre class="r"><code>transaction_product &lt;- merge(transaction_data, product_data, by.x = &quot;product_name&quot;, by.y =&quot;product_name&quot;)
+merged_data &lt;- merge(transaction_product, machine_data, by= &quot;machine&quot;)</code></pre>
 <div id="question-1-general-overview-of-the-data" class="section level2">
 <h2>Question 1: General overview of the data</h2>
 <div id="machines" class="section level3">
@@ -465,8 +467,15 @@ sales_dist2</code></pre>
 <p class="caption">Caption</p>
 </div>
 <ol style="list-style-type: lower-alpha">
-<li><p>Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?</p></li>
-<li><p>Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?</p></li>
+<li>Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?</li>
+</ol>
+<ul>
+<li>weekly seasonality (spikes on weekends?)</li>
+<li>drinks: an linear increasing trend (ANOVA?)</li>
+<li>snack: flat/no trend</li>
+</ul>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?</li>
 </ol>
 <div id="question-3-distribution-of-income" class="section level3">
 <h3>Question 3: Distribution of income</h3>
