@@ -1,7 +1,7 @@
 ---
 title: "Challenge 1: General Overview and Data Treatment"
 subtitle: "Data Analytics with R"
-author: "Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer, Henrik Mülheims, Martí Pérez & others" 
+author: "Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer, Henrik Mülheims, Martí Pérez & others abc" 
 date: "2/9/2021"
 output: html_document
 ---
