@@ -55,8 +55,8 @@ machine_dist_by_location
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
 product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
-product_type_dist <- product_data[,  .(mean_price = mean(price)), by = .(type_drink_snack, category)]
-number_of_products; product_dist
+product_type_dist <- product_data[,  .(.N, mean_price = mean(price)), by = .(category, type_drink_snack)]
+number_of_products; product_dist; product_type_dist
 ```
 
 ### Transactional data
@@ -68,7 +68,7 @@ transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
 
 
 ```{r}
-### WHY DOES WE loose one row???
+### WHY DOES WE loose one row(machine)???
 transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
 
 uniqueN(transactions_march_dist$machine)
@@ -81,16 +81,15 @@ sales_dist
 sales_dist2 <- sales_dist[,.(avg_sales = mean(mean_sales)), by = small_machine]
 sales_dist2
 plot(sales_dist)
+boxplot(sales_dist$mean_sales)
 ```
 
 
 ## Question 2: Plot interpretation 
 ![Caption](Q2.JPG)
 
-a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that
-might be so?
+a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-* weekly seasonality (spikes on weekends?)
 * drinks: an linear increasing trend (ANOVA?)
 * snack: flat/no trend
 
@@ -101,9 +100,16 @@ might be so?
 
 
 b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?
+* weekly seasonality (spikes on weekends?)
 
 
 ### Question 3: Distribution of income 
+
+```{r}
+summary(machine_data$income_average)  ### Why do we not get the same results ?? 
+
+boxplot(machine_data$income_average)
+```
 
 
 
