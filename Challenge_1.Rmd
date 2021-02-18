@@ -113,9 +113,21 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 ### Question 3: Distribution of income 
 
 ```{r}
-summary(machine_data$income_average)  ### Why do we not get the same results ?? 
+summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
+hist(merged_data$income_average,
+  xlab = "income average",
+  main = "Histogram of income",
+  breaks = 10)
 
-boxplot(machine_data$income_average)
+#Removing outliers with IQR Method
+Q <- quantile(merged_data$income_average, probs=c(.25, .75), na.rm = TRUE)
+iqr <- IQR(merged_data$income_average, na.rm= TRUE)
+
+up <-  Q[2]+1.5*iqr # Upper Range (beyond which datapoints are outliers)  
+low<- Q[1]-1.5*iqr # Lower Range
+
+merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.5*iqr) & merged_data$income_average < (Q[2]+1.5*iqr))
+
 ```
 
 
