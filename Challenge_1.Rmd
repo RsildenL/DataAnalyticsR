@@ -120,9 +120,8 @@ summary(machine_data$num_hotels)
 ```
 
 ```{r}
-library(pROC)
-library(CRAN)
 arcvi_descriptive(machine_data$income_average, machine_data$small_machine)
+arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
 ```
 
 
@@ -136,10 +135,10 @@ a) Decide in which locations to place new machines
 b) Construct a benchmark for each machine: how much should it sell according to its location? This can be used to detect problems in machines (i.e. illumination, bad placement within a station etc.)
 
 ```{r}
+merged_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 
-machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 
-
+#### we have a lot of NAs should we do something about them?
 ```
 
 
@@ -149,8 +148,8 @@ Hint: Recall that to check the parameters of a glm model called “model1” you
 
 ```{r}
 #glm( ~ small_machine + income_average + total_number_of_routes_600
-#     + num_hotels_45 + num_vendex_nearby_300, 
- #    data = machine_data)
+#     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+#    data = merged_data)
 ```
 
 
@@ -159,7 +158,16 @@ Build another linear model but this time instead of using the variables
 “total_number_of_routes_600 use the log of that variable in base 10 calling it
 “log_transport”. Does this new variable show statistical significance?
 ```{r}
+### SHOULD WE DO ANYTHING WITH THE NAs??
+summary(merged_data$total_number_of_routes_600)
+merged_data[,log_transport:= log(total_number_of_routes_600)]
+colnames(merged_data)
+```
 
+```{r}
+#glm( ~ small_machine + income_average + log_transport
+#     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+#    data = merged_data)
 ```
 
 
