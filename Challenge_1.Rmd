@@ -55,10 +55,9 @@ machine_dist_by_location
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
 product_dist <- product_data[,.(.N, mean_price = mean(price)), by=category]
-
+product_type_dist <- product_data[,  .(mean_price = mean(price)), by = .(type_drink_snack, category)]
 number_of_products; product_dist
 ```
-
 
 ### Transactional data
 ```{r}
