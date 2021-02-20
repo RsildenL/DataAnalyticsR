@@ -130,6 +130,22 @@ low<- Q[1]-1.5*iqr # Lower Range
 
 merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.5*iqr) & merged_data$income_average < (Q[2]+1.5*iqr))
 
+# b)
+summary(merged_data$income_average)
+
+#Option 1: Subset complete cases only with complete.cases() or na.omit().
+merged_data_cc <- merged_data[complete.cases(income_average), ] [order(date, machine)]
+summary(merged_data_cc$income_average)
+
+#Option 2: Imputation with Mean or Median.
+library(Hmisc)
+merged_data_mean <- impute(merged_data$income_average, mean)
+summary(merged_data_mean)
+merged_data_median <- impute(merged_data$income_average, median)
+summary(merged_data_median)
+
+#Option 3: Using ML algorithms like KNN.
+
 ```
 
 
