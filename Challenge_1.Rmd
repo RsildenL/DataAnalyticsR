@@ -102,7 +102,8 @@ a. Is there a general trend in the number of snacks and drinks as the months pro
 ```{r}
 daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, date)]
 daily_items_sold <- merged_data[, .(.N), by= date]
-plot(daily_items_sold$date, daily_items_sold$N)
+
+daily_items_sold
 ```
 
 
@@ -156,20 +157,26 @@ b) Construct a benchmark for each machine: how much should it sell according to 
 
 ```{r}
 merged_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
-
-
 #### we have a lot of NAs should we do something about them?
-```
 
+
+daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
+daily_items_sold
+merged_data_dist <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
+merged_data_dist
+
+merged_data <- merge(merged_data, merged_data_dist)
+```
 
 #### Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
 Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)
 
 ```{r}
-#m0 <- glm( ~ small_machine + income_average + total_number_of_routes_600
-#     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-#    data = merged_data)
+m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes_600
+     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+    data = merged_data)
+summary(m0)
 ```
 
 
@@ -185,15 +192,16 @@ colnames(merged_data)
 ```
 
 ```{r}
-#m1 <- glm( ~ small_machine + income_average + log_transport
-#     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-#    data = merged_data)
+m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
+     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+    data = merged_data)
+summary(m1)
 ```
 
 
 #### How many daily items less do small machines sell all other factors remaining equal?
 ```{r}
-#m1$coefficients
+m1$coefficients
 ```
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
