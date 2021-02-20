@@ -10,6 +10,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(tidyverse)
+library(pROC)
 ```
 
 Reading the data
@@ -156,16 +157,16 @@ a) Decide in which locations to place new machines
 b) Construct a benchmark for each machine: how much should it sell according to its location? This can be used to detect problems in machines (i.e. illumination, bad placement within a station etc.)
 
 ```{r}
-merged_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
+machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 #### we have a lot of NAs should we do something about them?
 
 
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
 daily_items_sold
-merged_data_dist <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
-merged_data_dist
+daily_items_sold <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
+daily_items_sold
 
-merged_data <- merge(merged_data, merged_data_dist)
+model_data <- merge(machine_data, daily_items_sold)
 ```
 
 #### Significant variables
@@ -175,10 +176,10 @@ Hint: Recall that to check the parameters of a glm model called “model1” you
 ```{r}
 m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes_600
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-    data = merged_data)
+    data = model_data)
 summary(m0)
 ```
-
+The total number of routes and number of vendex machines nearvy is insignificant features. 
 
 #### Linear model 
 Build another linear model but this time instead of using the variables
@@ -186,18 +187,52 @@ Build another linear model but this time instead of using the variables
 “log_transport”. Does this new variable show statistical significance?
 ```{r}
 ### SHOULD WE DO ANYTHING WITH THE NAs??
-summary(merged_data$total_number_of_routes_600)
-merged_data[,log_transport:= log(total_number_of_routes_600)]
-colnames(merged_data)
+summary(model_data$total_number_of_routes_600)
+model_data[,log_transport:= log(total_number_of_routes_600)]
+colnames(model_data)
 ```
 
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-    data = merged_data)
+    data = model_data)
 summary(m1)
 ```
+#### train model using cross-validation
+```{r}
+# 5 fold : Train-test split
+cfolds <- 5
+index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
+# Train/Test split: create a train with index 1:4, test with index 5
+train <- model_data[index %in% 1:4,]
+test <- model_data[index == 5,]
 
+m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
+     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+    data = train)
+
+pred_train1 <- predict(m1, newdata = train, type = "response")
+pred_test1 <- predict(m1, newdata = test, type = "response")
+auc(train$daily_sales, pred_train1)
+auc(test$daily_sales, pred_test1)
+
+
+auc_train <- 0
+auc_test <- 0
+
+for (i in 1:5){
+  train <- model_data[index !=i,]
+  test <- model_data[index == i,]
+  m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
+     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+     data = train)
+  pred_train1 <- predict(m1, newdata = train, type = "response")
+  pred_test1 <- predict(m1, newdata = test, type = "response")
+  auc_train[i] <- auc(train$daily_sales, pred_train1)
+  auc_test[i] <- auc(test$daily_sales, pred_test1)
+}
+
+```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
 ```{r}
