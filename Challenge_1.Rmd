@@ -133,6 +133,29 @@ merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.
 ```
 
 
+```{r}
+boxplot(machine_data$income_average)
+summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
+hist(machine_data$income_average,
+  xlab = "income average",
+  main = "Histogram of income",
+  breaks = 10)
+
+income_small <- machine_data[small_machine==1, income_average]
+income_big <- machine_data[small_machine==0, income_average]
+summary(income_big) ; summary(income_small)
+boxplot(income_big); boxplot(income_small)
+
+plot(machine_data$small_machine, machine_data$income_average)
+plot(machine_data$machine, machine_data$income_average)
+```
+
+```{r}
+income_NA <- machine_data[is.na(income_average), ]
+uniqueN(income_NA)
+summary(income_NA)
+```
+
 
 ### Question 4: Boxplot interpretation 
 ![Boxplot](Q4.JPG)
@@ -142,8 +165,9 @@ summary(machine_data$num_hotels)
 ```
 
 ```{r}
-arcvi_descriptive(machine_data$income_average, machine_data$small_machine)
+arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
 arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
+arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 
@@ -253,10 +277,10 @@ top20%/bottom20% ratio?
 hist(final_model$fitted.values, breaks = 40)
 
 
-train$intervals <- cut(x = final_model$fitted.values, quantile(final_model$fitted.values), 
-                       labels = c("very low", "low", "medium", "high"), rep(TRUE))
+#train$intervals <- cut(x = final_model$fitted.values, quantile(final_model$fitted.values), 
+#                       labels = c("very low", "low", "medium", "high"), rep(TRUE))
 
-train[, .(avg_sales = mean(daily_sales)), by = 'intervals']
+#train[, .(avg_sales = mean(daily_sales)), by = 'intervals']
 ```
 
 
