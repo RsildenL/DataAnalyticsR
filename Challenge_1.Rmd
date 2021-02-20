@@ -130,22 +130,6 @@ low<- Q[1]-1.5*iqr # Lower Range
 
 merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.5*iqr) & merged_data$income_average < (Q[2]+1.5*iqr))
 
-# b)
-summary(merged_data$income_average)
-
-#Option 1: Subset complete cases only with complete.cases() or na.omit().
-merged_data_cc <- merged_data[complete.cases(income_average), ] [order(date, machine)]
-summary(merged_data_cc$income_average)
-
-#Option 2: Imputation with Mean or Median.
-library(Hmisc)
-merged_data_mean <- impute(merged_data$income_average, mean)
-summary(merged_data_mean)
-merged_data_median <- impute(merged_data$income_average, median)
-summary(merged_data_median)
-
-#Option 3: Using ML algorithms like KNN.
-
 ```
 
 
@@ -223,7 +207,7 @@ index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
 train <- model_data[index %in% 1:4,]
 test <- model_data[index == 5,]
 
-m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
+final_model <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
     data = train)
 
@@ -239,30 +223,41 @@ auc_test <- 0
 for (i in 1:5){
   train <- model_data[index !=i,]
   test <- model_data[index == i,]
-  m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
+  final_model <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
      data = train)
-  pred_train1 <- predict(m1, newdata = train, type = "response")
-  pred_test1 <- predict(m1, newdata = test, type = "response")
+  pred_train1 <- predict(final_model, newdata = train, type = "response")
+  pred_test1 <- predict(final_model, newdata = test, type = "response")
   auc_train[i] <- auc(train$daily_sales, pred_train1)
   auc_test[i] <- auc(test$daily_sales, pred_test1)
 }
 
+summary(final_model)
 ```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
 ```{r}
-m1$coefficients
+final_model$coefficients["small_machine"]
 ```
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
 ```{r}
-
+final_model$coefficients["num_vendex_nearby_300"]
 ```
 
 #### Top and bottom ratio
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the
 top20%/bottom20% ratio?
+
+```{r}
+hist(final_model$fitted.values, breaks = 40)
+
+
+train$intervals <- cut(x = final_model$fitted.values, quantile(final_model$fitted.values), 
+                       labels = c("very low", "low", "medium", "high"), rep(TRUE))
+
+train[, .(avg_sales = mean(daily_sales)), by = 'intervals']
+```
 
 
 
