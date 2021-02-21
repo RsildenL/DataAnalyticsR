@@ -72,7 +72,7 @@ transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
 sales_dist <- transactions_march_dist[,.(.N, mean_sales = mean(N)), by=machine]
 sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
 
-sales_dist2 <- sales_dist[,.(num_machines= .N, tot_products = sum(N), avg_sales = round(mean(mean_sales),2)), by = small_machine]
+sales_dist2 <- sales_dist[,.(avg_daily_items = round(mean(mean_sales),2), num_machines= .N, tot_products = sum(N)), by = small_machine]
 sales_dist2$products_per_machine <- sales_dist2[,.(tot_products/num_machines)]
 
 sales_dist2
@@ -145,22 +145,21 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 
 The vending machines are more used in the weekends than in the weekdays. A potential explanation of this could be that the people are travelling more during the weekends and thus the vending machine close to transporation means are more used. 
 
+
 ```{r}
 drink_trend[,day:=weekdays(date)]
-mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily) # weekend average of 4.57
-mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily) # week average of 3.39
-perday<-drink_trend[,day_avg:=mean(avg_daily)]
-week_trend<-drink_trend[,.(day_avg=mean(avg_daily)),by=day]
-plot(1:7,week_trend$day_avg,type = "l")
+drink_dist <- drink_trend[ , .(daily_avg = mean(avg_daily)) , by=day]
+drink_dist <- drink_dist %>% add_row(day = "Weekend", daily_avg =mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+drink_dist <- drink_dist %>% add_row(day = "Weekdays", daily_avg =mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+drink_dist
 ```
 
 ```{r}
 snack_trend[,day:=weekdays(date)]
-mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily) # weekend average of 7.25
-mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily) # week average of 5.61
-perday <- snack_trend[,day_avg:=mean(avg_daily)]
-week_trend <- snack_trend[,.(day_avg=mean(avg_daily)),by=day]
-plot(1:7,week_trend$day_avg,type = "l")
+snack_dist <- snack_trend[ , .(daily_avg = mean(avg_daily)) , by=day]
+snack_dist <- snack_dist %>% add_row(day = "Weekend", daily_avg =mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+snack_dist <- snack_dist %>% add_row(day = "Weekdays", daily_avg =mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+snack_dist
 ```
 
 ### Question 3: Distribution of income 
