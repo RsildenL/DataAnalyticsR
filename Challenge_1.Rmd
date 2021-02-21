@@ -142,19 +142,20 @@ The vending machines are more used in the weekends than in the weekdays. A poten
 
 ```{r}
 drink_trend[,day:=weekdays(date)]
-drink_dist <- drink_trend[ , .(daily_avg = mean(avg_daily)) , by=day]
-drink_dist <- drink_dist %>% add_row(day = "Weekend", daily_avg =mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
-drink_dist <- drink_dist %>% add_row(day = "Weekdays", daily_avg =mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
-drink_dist
+drink_dist <- drink_trend[ , .(daily_drink = mean(avg_daily)) , by=day]
+drink_dist <- drink_dist %>% add_row(day = "Weekend", daily_drink =mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+drink_dist <- drink_dist %>% add_row(day = "Weekdays", daily_drink =mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+drink_dist$daily_drink <- round(drink_dist$daily_drink, 2)
+
+snack_trend[,day:=weekdays(date)]
+snack_dist <- snack_trend[ , .(daily_snack = mean(avg_daily)) , by=day]
+snack_dist <- snack_dist %>% add_row(day = "Weekend", daily_snack =mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+snack_dist <- snack_dist %>% add_row(day = "Weekdays", daily_snack =mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+snack_dist$daily_snack <- round(snack_dist$daily_snack, 2)
+
+merge(snack_dist, drink_dist)
 ```
 
-```{r}
-snack_trend[,day:=weekdays(date)]
-snack_dist <- snack_trend[ , .(daily_avg = mean(avg_daily)) , by=day]
-snack_dist <- snack_dist %>% add_row(day = "Weekend", daily_avg =mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
-snack_dist <- snack_dist %>% add_row(day = "Weekdays", daily_avg =mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
-snack_dist
-```
 
 ### Question 3: Distribution of income 
 #### Outliers
