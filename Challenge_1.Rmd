@@ -222,6 +222,12 @@ boxplot(machine_data$income_average, income_small, income_big,
         names = c("all machines", "small machines", "big machines"),
         ylab = "income average")
 
+summary(machine_data$income_average)  
+hist(machine_data$income_average,
+  xlab = "income average",
+  main = "Histogram of income",
+  breaks = 10)
+
 summary(machine_data$income_average); summary(income_big) ; summary(income_small)
 
 ```
@@ -239,59 +245,8 @@ summary(log(machine_data$income_average)); summary(log(income_big)) ; summary(lo
 There are multiple ways to detect and remove outliers. We will employ the commonly used Interquartile range (IQR), a measure of statistical dispersion consisting in computing the difference between the 75th and 25th percentiles, or between upper and lower quartiles so that IQR = Q3 - Q1. 
 An upper and lower thresholds are then established by multiplying the IQR by 1.5 (a constant used to discern outliers). Any number greater than Q3 + 1.5xIQR will be identified as an outlier. In a similar way, values smaller than Q1-1.5xIQR will also be classified as outliers.
 
-### Question 3: Distribution of income 
-#### Outliers
-There are some extreme values in the distribution of income across, which could be interpreted as outliers.This means that there are some machines that generate much more income than others, and could be a result of a strategically good location of vending machines. These instances seem to be distributed across small and big machines
-```{r}
-
-income_small <- machine_data[small_machine==1, income_average]
-income_big <- machine_data[small_machine==0, income_average]
-boxplot(machine_data$income_average, income_small, income_big,
-        main = "Income Distribution",
-        names = c("all machines", "small machines", "big machines"),
-        ylab = "income average")
-
-summary(machine_data$income_average); summary(income_big) ; summary(income_small)
-
-summary(machine_data$income_average)  
-hist(machine_data$income_average,
-  xlab = "income average",
-  main = "Histogram of income",
-  breaks = 10)
-
-#Removing outliers with IQR Method   
-Q <- quantile(machine_data$income_average, probs=c(.25, .75), na.rm = TRUE)
-iqr <- IQR(machine_data$income_average, na.rm= TRUE)
-
-up <-  Q[2]+1.5*iqr # Upper Range (beyond which datapoints are outliers)  
-low<- Q[1]-1.5*iqr # Lower Range
-
-machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
-
-
-```
 
 ```{r}
-## potential solution log transformation
-## Log transformation would include these outliers, but make the impact of them much smaller 
-boxplot(log(machine_data$income_average), log(income_small), log(income_big),
-        main = "Income Distribution",
-        names = c("all machines", "small machines", "big machines"),
-        ylab = "income average")
-
-summary(log(machine_data$income_average)); summary(log(income_big)) ; summary(log(income_small))
-```
-
-
-```{r}
-summary(machine_data$income_average)  
-hist(machine_data$income_average,
-  xlab = "income average",
-  main = "Histogram of income",
-  breaks = 10)
-
-
-#Removing outliers with IQR Method   
 Q <- quantile(machine_data$income_average, probs=c(.25, .75), na.rm = TRUE)
 iqr <- IQR(machine_data$income_average, na.rm= TRUE)
 
@@ -301,6 +256,7 @@ low<- Q[1]-1.5*iqr # Lower Range
 machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
 
 ```
+
 #### NA's
 Missing data is a very common problem that can reduce the satistical power of our data or to produce biased estimates that will invalidate our predictions.
 To deal with missing values we can just to delete rows when a missing value appears. Our problem is fixed, however this result leads to having less data  could affect the distribution our data, hence the predict capabilities of our model
