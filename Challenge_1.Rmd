@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(tidyverse)
 library(pROC)
-library("openair")
+library(openair)
+library(basicTrendline)
 ```
 
 Reading the data
@@ -68,13 +69,17 @@ transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
 
 sales_dist <- transactions_march_dist[,.(.N, mean_sales = mean(N)), by=machine]
 sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
-sales_dist
 
-sales_dist2 <- sales_dist[,.(num_machines= .N, tot_products = sum(N), avg_sales = round(mean(mean_sales),4)), by = small_machine]
+sales_dist2 <- sales_dist[,.(num_machines= .N, tot_products = sum(N), avg_sales = round(mean(mean_sales),2)), by = small_machine]
 sales_dist2$products_per_machine <- sales_dist2[,.(tot_products/num_machines)]
+
 sales_dist2
-plot(sales_dist)
-boxplot(sales_dist$mean_sales)
+boxplot(sales_dist$mean_sales,
+        sales_dist[small_machine == 1,]$mean_sales, 
+        sales_dist[small_machine == 0,]$mean_sales, 
+        main = "Daily Sales Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "daily sales")
 ```
 
 In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines sell more products in total and have a higher average of sold products per machine per day. However, when accounting for the whole month and the number of machines, the small and big machines have very similar total products sold per machine. 
@@ -158,7 +163,29 @@ plot(1:7,week_trend$day_avg,type = "l")
 
 ### Question 3: Distribution of income 
 #### Outliers
-There are some extreme values in the distribution of income across, which could be interpreted as outliers. 
+There are some extreme values in the distribution of income across, which could be interpreted as outliers.This means that there are some machines that generate much more income than others, and could be a result of a strategically good location of vending machines. These instances seem to be distributed across small and big machines
+```{r}
+income_small <- machine_data[small_machine==1, income_average]
+income_big <- machine_data[small_machine==0, income_average]
+boxplot(machine_data$income_average, income_small, income_big,
+        main = "Income Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "income average")
+
+summary(machine_data$income_average); summary(income_big) ; summary(income_small)
+
+```
+```{r}
+## potential solution log transformation
+## Log transformation would include these outliers, but make the impact of them much smaller 
+boxplot(log(machine_data$income_average), log(income_small), log(income_big),
+        main = "Income Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "income average")
+
+summary(log(machine_data$income_average)); summary(log(income_big)) ; summary(log(income_small))
+```
+
 
 ```{r}
 summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
@@ -167,7 +194,7 @@ hist(merged_data$income_average,
   main = "Histogram of income",
   breaks = 10)
 
-#Removing outliers with IQR Method
+#Removing outliers with IQR Method   ######################### WE SHOULD USE machine data not merged data
 Q <- quantile(merged_data$income_average, probs=c(.25, .75), na.rm = TRUE)
 iqr <- IQR(merged_data$income_average, na.rm= TRUE)
 
@@ -179,29 +206,24 @@ merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.
 ```
 
 
-```{r}
-boxplot(machine_data$income_average)
-summary(machine_data$income_average)
-hist(machine_data$income_average,
-  xlab = "income average",
-  main = "Histogram of income",
-  breaks = 10)
 
-income_small <- machine_data[small_machine==1, income_average]
-income_big <- machine_data[small_machine==0, income_average]
-summary(income_big) ; summary(income_small)
-boxplot(income_big); boxplot(income_small)
-
-plot(machine_data$small_machine, machine_data$income_average)
-plot(machine_data$machine, machine_data$income_average)
-```
 
 #### NA's
+There are 182 NA values in the income average feature. Out of theses 182 observations, 104 of them are also NA in the train average daily passengers and train average day passengers.
+* no machines that have more than 1 NA
+* 59% of NA's are big machines, 41% are small machines
+* 50% of NA's are located close to transportation
+
+##################### HOW SHOULD WE Account for daily sales as he write in the hint?
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
 uniqueN(income_NA)
-summary(income_NA)
+
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by=location_type]
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= small_machine]
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-N)]
 ```
+
 
 
 ### Question 4: Boxplot interpretation 
@@ -214,7 +236,7 @@ summary(machine_data$num_hotels)
 ```{r}
 arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
 arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
-arcvi_descriptive(model_data$income_average, model_data$daily_sales)
+#arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 
