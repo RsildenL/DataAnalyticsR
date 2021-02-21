@@ -380,7 +380,7 @@ m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes
     data = model_data)
 summary(m0)
 ```
-The total number of routes and number of vendex machines nearvy is insignificant features. 
+The total number of routes and number of vendex machines nearby is insignificant features, by checking the p-values.
 
 #### Linear model 
 Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?
