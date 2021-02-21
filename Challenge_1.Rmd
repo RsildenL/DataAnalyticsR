@@ -447,7 +447,22 @@ hist(final_model$fitted.values, breaks = 40)
 ```
 
 ```{r}
+predictions <- c(predict(final_model, model_data))
+real <- c(model_data$daily_sales)
 
+comparison <- data.table(predictions, real)
+comparison$ratio <- comparison$predictions/comparison$real
+comparison$difference <- comparison$predictions - comparison$real
+
+comparison <- comparison[order(rank(predictions), decreasing = T)]
+
+comparison
+
+top20 <- mean(comparison$ratio[1:(0.2*length(comparison))])
+bottom20 <- mean(comparison$ratio[(0.8*length(comparison)):(length(comparison))])
+
+top20
+bottom20
 ```
 
 
