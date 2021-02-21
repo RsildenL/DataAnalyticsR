@@ -44,10 +44,8 @@ machine_dist[,.(type,N, percent)]
 ```
 
 ```{r}
-machine_dist_by_location <- machine_data[,.(.N),by = .(small_machine, location_type)]
+machine_dist_by_location <- machine_data[,.(.N),by = location_type]
 machine_dist_by_location [,percent := round(N/number_of_machines,4)]
-machine_dist_by_location$type <- ifelse(machine_dist_by_location$small_machine == 1,
-                            yes = "small", no = "large")
 machine_dist_by_location
 ```
 There are 2495 vending machines, wheras 38% (959) of them are small and 62% (1536) are large vending machines.
