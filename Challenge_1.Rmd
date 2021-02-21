@@ -361,7 +361,7 @@ dim(machine_data_replace_NA_mean)
 sum(is.na(machine_data_replace_NA_mean$income_average))
 ```
 
-Option 3: substitute missing values with average income of machine 
+Option 4: substitute missing values with average income of machine 
 ```{r}
 machine_data_means <- machine_data[,.(mean(income_average)), by = .(machine)]
 machine_data_means
