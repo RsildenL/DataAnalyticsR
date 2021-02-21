@@ -97,13 +97,49 @@ a. Is there a general trend in the number of snacks and drinks as the months pro
 
 
 ```{r}
-daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, as.Date(date))]
+daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, date)]
 #daily_items_sold <- merged_data[, .(.N), by= date]
 
 daily_items_sold
 
 daily_num_snack <- daily_items_sold[type_drink_snack=="snack",] 
-plot(daily_num_snack)
+plot(daily_num_snack$N)
+```
+
+
+```{r}
+
+st_trend<-merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
+plot(st_trend$date,st_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
+abline(st_trend$avg_daily~st_trend$date)
+
+trendline(
+  st_trend$date,
+  st_trend$avg_daily,
+  model = "line2P",
+  Pvalue.corrected = TRUE,
+  linecolor = "blue",
+  lty = 1,
+  lwd = 1,
+  show.equation = TRUE,
+  show.Rsquare = TRUE,
+  show.pvalue = TRUE)
+```
+
+```{r}
+st_trend<-merged_data[type_drink_snack == 'snack',.(avg_daily=.N/uniqueN(machine)), by=.(date)][order(date)]
+plot(st_trend$date,st_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
+trendline(
+  st_trend$date,
+  st_trend$avg_daily,
+  model = "line2P",
+  Pvalue.corrected = TRUE,
+  linecolor = "blue",
+  lty = 1,
+  lwd = 1,
+  show.equation = TRUE,
+  show.Rsquare = TRUE,
+  show.pvalue = TRUE)
 ```
 
 
@@ -134,7 +170,7 @@ merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.
 
 ```{r}
 boxplot(machine_data$income_average)
-summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
+summary(machine_data$income_average)
 hist(machine_data$income_average,
   xlab = "income average",
   main = "Histogram of income",
