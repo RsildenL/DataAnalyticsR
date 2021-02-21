@@ -477,7 +477,8 @@ top20/bottom20
 #### Choice
 Given the following 2 locations for a big machine:
 i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines
-ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines Which location would you choose and why?
+ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines 
+Which location would you choose and why?
 
 ```{r}
 option1 <- predict(final_model, 
