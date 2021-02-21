@@ -25,6 +25,8 @@ transaction_data <- fread("Data/transactional_data.csv")
 transaction_data$date <- as.Date(transaction_data$date)
 merged_data <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
 merged_data <- merge(merged_data, machine_data, by= "machine")
+
+
 ```
 
 
@@ -36,10 +38,11 @@ machine_dist <- machine_data[,.(.N), by=small_machine]
 machine_dist[,percent := round(N/number_of_machines, 4)]
 machine_dist$type <- ifelse(machine_dist$small_machine == 1, 
                             yes = "small", no = "large")
+machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
 ```
 
 ```{r}
-machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
+
 ```
 
 ```{r}
