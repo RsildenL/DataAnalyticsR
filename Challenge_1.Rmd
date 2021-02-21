@@ -312,7 +312,7 @@ There are 182 NA values in the income average feature. Out of theses 182 observa
 * no machines that have more than 1 NA
 * 59% of NA's are big machines, 41% are small machines
 * 50% of NA's are located close to transportation
-T
+
 ##################### HOW SHOULD WE Account for daily sales as he write in the hint?
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
@@ -347,16 +347,19 @@ dim(machine_remove_NA)
 ```
 Option 2: Replace NA's with Zero
 ```{r}
-machine_na_to_zero <- machine_data[!is.na(machine_data$income_average), ]
-dim(machine_na_to_zero)
+na_zero <- machine_data
+na_zero$income_average[is.na(na_zero$income_average)] <- 0
+
+dim(na_zero)
 ```
 
 Option 3: Substitute missing values with the mean income average 
 ```{r}
-machine_data_replace_NA_mean <- machine_data[!is.na(machine_data$income_average), ] <- machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]
-#machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
-
-
+machine_data_replace_NA_mean <- machine_data
+machine_data_replace_NA_mean$income_average[is.na(machine_data_replace_NA_mean$income_average)] <- mean(machine_data$income_average, na.rm = TRUE)
+dim(machine_data_replace_NA_mean)
+    
+sum(is.na(machine_data_replace_NA_mean$income_average))
 ```
 
 Option 3: substitute missing values with average income of machine 
