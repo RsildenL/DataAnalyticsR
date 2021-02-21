@@ -19,9 +19,8 @@ machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
 
-# merge data
-transaction_product <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
-merged_data <- merge(transaction_product, machine_data, by= "machine")
+merged_data <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
+merged_data <- merge(merged_data, machine_data, by= "machine")
 ```
 
 ## Question 1: General overview of the data
@@ -52,8 +51,8 @@ More than half of the vending machines are plased close to transportation,while 
 ```{r}
 product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
-product_dist <- product_data[,.(.N, mean_price = round(mean(price),2)), by=category][order(-N)]
-product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),2)), by = .(category, type_drink_snack)][order(-mean_price)]
+product_dist <- product_data[,.(.N, mean_price = round(mean(price),4)), by=category][order(-N)]
+product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),4)), by = .(category, type_drink_snack)][order(-mean_price)]
 number_of_products; product_dist; product_type_dist
 ```
 There are in total 63 different products, classified as drink or snack, which are distributed in 8 different categories.
@@ -90,13 +89,15 @@ daily_items_sold <- transaction_data[, .(.N), by=.(machine, date)]
 summary(daily_items_sold)
 
 ```
+################ MISSING INTERPRETATION 
+
 
 ## Question 2: Plot interpretation 
 ![Caption](Q2.JPG)
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-* drinks: an linear increasing trend (ANOVA?)
+* drinks: an linear increasing trend (ANOVA?) - increasing with temprature?
 * snack: flat/no trend
 
 
