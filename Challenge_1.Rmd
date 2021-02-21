@@ -108,6 +108,11 @@ boxplot(sales_dist$mean_sales,
         names = c("all machines", "small machines", "big machines"),
         ylab = "daily sales")
 ```
+```{r}
+march<-merge_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
+march_avg_small<-march[,.(mean_items=mean(N)),by=.(machine, small_machine)]
+march_avg<-march_avg_small[,.(mean_iteams1=sum(mean_items)/uniqueN(machine)),by=small_machine]
+```
 
 ## Question 2: Plot interpretation 
 ![](Q2.JPG)
