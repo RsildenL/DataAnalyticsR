@@ -301,12 +301,34 @@ sum(is.na(machine_data_replace_NA_mean$income_average))
 
 Option 4: substitute missing values with average income of machine 
 ```{r}
-machine_data_means <- machine_data[,.(mean(income_average)), by = .(machine)]
-machine_data_means
-income_NA$machine
-machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
+w_na <- machine_data[!is.na(machine_data$income_average), ]
+w_na$income_average[is.na(w_na$income_average)]
 
-machine_data$income_avg <- machine_data$income_average
+na_mean <- machine_data
+means <- w_na %>%
+         filter(is.na(location_type) == F) %>%
+         select(income_average, location_type, small_machine) %>%
+         group_by(small_machine, location_type) %>%
+         summarize(mean = mean(income_average))
+
+small_others <- with(means, mean[small_machine == 1 & location_type == 'others'])
+small_transport <- with(means, mean[small_machine == 1 & location_type == 'transport'])
+small_petrol <- with(means, mean[small_machine == 1 & location_type == 'petrol station'])
+
+big_others <- with(means, mean[small_machine == 0 & location_type == 'others'])
+big_transport <- with(means, mean[small_machine == 0 & location_type == 'transport'])
+big_petrol <- with(means, mean[small_machine == 0 & location_type == 'petrol station'])
+
+na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'others' & is.na(na_mean$income_average)] <- small_others
+na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'transport' & is.na(na_mean$income_average)] <- small_transport
+na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'petrol station' & is.na(na_mean$income_average)] <- small_petrol
+
+na_mean$income_average[na_mean$small_machine==0 & na_mean$location_type == 'others' & is.na(na_mean$income_average)] <- big_others
+na_mean$income_average[na_mean$small_machine==0 & na_mean$location_type == 'transport' & is.na(na_mean$income_average)] <- big_transport
+na_mean$income_average[na_mean$small_machine==0 & na_mean$location_type == 'petrol station' & is.na(na_mean$income_average)] <- big_petrol
+
+
+na_mean$income_average[is.na(na_mean$income_average)]
 ```
 
 
@@ -336,7 +358,6 @@ machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 #### we have a lot of NAs should we do something about them?
 
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
-daily_items_sold
 daily_items_sold <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
 daily_items_sold
 
@@ -344,6 +365,8 @@ model_data <- merge(machine_data, daily_items_sold)
 ```
 
 ```{r}
+
+model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_600)] <- median(model_data$total_number_of_routes_600, na.rm=TRUE)
 summary(model_data)
 ### WHAT TO DO WITH NA's??
 ```
