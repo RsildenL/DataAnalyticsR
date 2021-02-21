@@ -225,11 +225,16 @@ machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] -
 
 
 #### NA's
+Missing data is a very common problem that can reduce the satistical power of our data or to produce biased estimates that will invalidate our predictions.
+To deal with missing values we can just to delete rows when a missing value appears. Our problem is fixed, however this result leads to having less data  could affect the distribution our data, hence the predict capabilities of our model
+Another way to deal with missing values is to replace the missing values with the mean variable for that feature, the advantage is that we keep those rows but this could create some correlation problems and affect the variability of our data. 
+For this specific case we choose to replace the missing value with the mean of machine type and location type of the the instance where we have a missing value.(needss improvement)
+
 There are 182 NA values in the income average feature. Out of theses 182 observations, 104 of them are also NA in the train average daily passengers and train average day passengers.
 * no machines that have more than 1 NA
 * 59% of NA's are big machines, 41% are small machines
 * 50% of NA's are located close to transportation
-
+T
 ##################### HOW SHOULD WE Account for daily sales as he write in the hint?
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
