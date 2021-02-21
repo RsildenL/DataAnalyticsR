@@ -149,8 +149,7 @@ From the distribution of the daily sales it is clear that some machines have sig
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-* drinks: an linear increasing trend increasing with temprature?
-* snack: no trend
+The graph for drinks shows a general increase in daily_items across the available timeframe. To better illustrate this (linear) trend, we have created a new plot. The graph for snacks shows no such trend. Instead, the trendline of the new plot for snacks is a horizontal line. The reason for the increasing trend for drinks could be related to seasonal consumption habit. Rising temperatures might timulate the purchase of beverages without having an effect on the number of snack items sold. 
 
 ```{r drinks trend}
 drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
@@ -192,7 +191,7 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 * Drinks: weekend average of 4.57 vs. weekday average of 3.39
 * Snacks: weekend average of 7.25 vs. weekday average of 5.61
 
-The vending machines are more used in the weekends than in the weekdays. A potential explanation of this could be that the people are travelling more during the weekends and thus the vending machine close to transporation means are more used. 
+The vending machines are used more frequently on weekends than on the weekdays. A potential explanation for this could be that the people travel more on weekends as they have more time. Thus, vending machines, especially those in close proximity of public transport, might be more highly frequented on Saturdays and Sundays.
 
 
 ```{r}
@@ -375,8 +374,9 @@ machine_data$income_avg <- machine_data$income_average
 
 ### Question 4: Boxplot interpretation 
 ![Boxplot](Q4.JPG)
-According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. The median is also in this case the same as the minimum and 1st quantile. 
-The 3rd quantile is one, while the mean of the observations is 2. This is due to that most of the vending machines not have hotels nearby, while about half (4th quantile) of those who have hotels nearby seems to have many hotels, with the maximum of 79 hotels nearby.
+According to this boxplot the median number of hotels in the machine area is 0. This means that more often than not machines do not have any hotels in the area. In this cases, the median also coincides with both of the minimum and the 1st quantile. 
+The 3rd quantile is 1, while the mean of the observations is 2. This is due to the fact that most of the vending machines do not have any hotels nearby, while about half of those which have hotels nearby (i.e. the 4th quantile) seem to have a relatively high number of hotels nearby (the maximum is 79 hotels nearby).
+
 --> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
 
 ```{r}
