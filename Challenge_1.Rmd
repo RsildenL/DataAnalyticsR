@@ -149,7 +149,7 @@ From the distribution of the daily sales it is clear that some machines have sig
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-The graph for drinks shows a general increase in daily_items across the available timeframe. To better illustrate this (linear) trend, we have created a new plot. The graph for snacks shows no such trend. Instead, the trendline of the new plot for snacks is a horizontal line. The reason for the increasing trend for drinks could be related to seasonal consumption habit. Rising temperatures might timulate the purchase of beverages without having an effect on the number of snack items sold. 
+The graph for drinks shows a general increase in daily_items across the available time frame. To better illustrate this (linear) trend, we have created a new plot. The graph for snacks shows no such trend. Instead, the trend line of the new plot for snacks is a horizontal line. The reason for the increasing trend for drinks could be related to seasonal consumption habits. Rising temperatures might stimulate the purchase of beverages without having an effect on the number of snack items sold. 
 
 ```{r drinks trend}
 drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
@@ -191,7 +191,7 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 * Drinks: weekend average of 4.57 vs. weekday average of 3.39
 * Snacks: weekend average of 7.25 vs. weekday average of 5.61
 
-The vending machines are used more frequently on weekends than on the weekdays. A potential explanation for this could be that the people travel more on weekends as they have more time. Thus, vending machines, especially those in close proximity of public transport, might be more highly frequented on Saturdays and Sundays.
+The vending machines are used more frequently on weekends than on the weekdays. A potential explanation for this could be that people travel more on weekends as they have more time. Thus, vending machines, especially those in close proximity of public transport, might be more highly frequented on Saturdays and Sundays.
 
 
 ```{r}
