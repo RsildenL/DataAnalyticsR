@@ -116,10 +116,9 @@ a. Is there a general trend in the number of snacks and drinks as the months pro
 * drinks: an linear increasing trend increasing with temprature?
 * snack: no trend
 
-
 ```{r drinks trend}
 drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
-plot(drink_trend$date,drink_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
+#plot(drink_trend$date,drink_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
 
 trendline(
   drink_trend$date,
@@ -136,7 +135,7 @@ trendline(
 
 ```{r snack trend}
 snack_trend <- merged_data[type_drink_snack == 'snack',.(avg_daily=.N/uniqueN(machine)), by=.(date)][order(date)]
-plot(snack_trend$date,snack_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
+#plot(snack_trend$date,snack_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
 
 trendline(
   snack_trend$date,
@@ -191,6 +190,7 @@ boxplot(machine_data$income_average, income_small, income_big,
 summary(machine_data$income_average); summary(income_big) ; summary(income_small)
 
 ```
+
 ```{r}
 ## potential solution log transformation
 ## Log transformation would include these outliers, but make the impact of them much smaller 
