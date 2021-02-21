@@ -219,15 +219,6 @@ low<- Q[1]-1.5*iqr # Lower Range
 
 machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
 
-
-#Option 2  (Kevin): Standard interquartile range to eliminate outliers
-q1 = quantile(machines$income_average, 0.25, na.rm = T)
-q3 = quantile(machines$income_average, 0.75, na.rm = T)
-int_quar_range = q3 - q1
-machines[income_average > q1 - 1.5*int_quar_range & income_average < q3 + 1.5*int_quar_range]
-
-
-
 ```
 
 
