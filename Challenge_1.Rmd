@@ -239,18 +239,42 @@ income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by=location_type]
 income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= small_machine]
 income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-N)]
 ```
+
 ```{r}
-#1: delete missing values
-is.na(machine_data$income_average)
-na.omit(machine_data$income_average)
-#2: substitute missing values with the average value
-machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
-#3: substitute missing values with mean of small machine and categories 
+#arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
+#arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
+#arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
+
+Option 1: Remove NA's
+* advantage: no approximation or noice
+* disadvantage: loose data points 
 ```{r}
-arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
-arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
-arcvi_descriptive(model_data$income_average, model_data$daily_sales)
+machine_remove_NA <- machine_data[!is.na(machine_data$income_average), ]
+dim(machine_remove_NA)
+```
+Option 2: Replace NA's with Zero
+```{r}
+machine_na_to_zero <- machine_data[!is.na(machine_data$income_average), ]
+dim(machine_na_to_zero)
+```
+
+Option 3: Substitute missing values with the mean income average 
+```{r}
+machine_data_replace_NA_mean <- machine_data[!is.na(machine_data$income_average), ] <- machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]
+#machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
+
+
+```
+
+Option 3: substitute missing values with average income of machine 
+```{r}
+machine_data_means <- machine_data[,.(mean(income_average)), by = .(machine)]
+machine_data_means
+income_NA$machine
+machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
+
+machine_data$income_avg <- machine_data$income_average
 ```
 
 
