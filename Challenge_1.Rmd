@@ -3,7 +3,9 @@ title: "Challenge 1: General Overview and Data Treatment"
 subtitle: "Data Analytics with R"
 author: "Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer, Henrik Mülheims, Martí Pérez & others" 
 date: "2/9/2021"
-output: html_document
+output: 
+    html_document: 
+        code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +18,7 @@ library(basicTrendline)
 ```
 
 Reading the data
-```{r}
+```{r , cache = TRUE}
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
@@ -93,7 +95,7 @@ summary(daily_items_sold)
 
 
 ## Question 2: Plot interpretation 
-![Caption](Q2.JPG)
+![](Q2.JPG)
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
@@ -228,21 +230,22 @@ income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-
 
 ### Question 4: Boxplot interpretation 
 ![Boxplot](Q4.JPG)
+According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. The median is also in this case the same as the minimum and 1st quantile. 
+The 3rd quantile is one, while the mean of the observations is 2. This is due to that most of the vending machines not have hotels nearby, while about half (4th quantile) of those who have hotels nearby seems to have many hotels, with the maximum of 79 hotels nearby.
+--> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
+
 ```{r}
 boxplot(machine_data$num_hotels)
 summary(machine_data$num_hotels)
 ```
 
 ```{r}
-arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
-arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
+#arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
+#arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
 #arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 
-According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. The median is also in this case the same as the minimum and 1st quantile. 
-The 3rd quantile is one, while the mean of the observations is 2. This is due to that most of the vending machines not have hotels nearby, while about half (4th quantile) of those who have hotels nearby seems to have many hotels, with the maximum of 79 hotels nearby.
---> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
 
 ### Question 5: Location score
 In this exercise we will build a location score that tells us what’s the average daily items per machine depending on the location it is placed. This model could be used to 
@@ -253,7 +256,6 @@ b) Construct a benchmark for each machine: how much should it sell according to 
 machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 #### we have a lot of NAs should we do something about them?
 
-
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
 daily_items_sold
 daily_items_sold <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
@@ -261,6 +263,12 @@ daily_items_sold
 
 model_data <- merge(machine_data, daily_items_sold)
 ```
+
+```{r}
+summary(model_data)
+### WHAT TO DO WITH NA's??
+```
+
 
 #### Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
@@ -279,7 +287,6 @@ Build another linear model but this time instead of using the variables
 “total_number_of_routes_600 use the log of that variable in base 10 calling it
 “log_transport”. Does this new variable show statistical significance?
 ```{r}
-### SHOULD WE DO ANYTHING WITH THE NAs??
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
 colnames(model_data)
@@ -292,7 +299,7 @@ m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
 summary(m1)
 ```
 #### train model using cross-validation
-```{r}
+```{r, eval = FALSE}
 # 5 fold : Train-test split
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
@@ -329,12 +336,12 @@ summary(final_model)
 ```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
-```{r}
+```{r , eval = FALSE}
 final_model$coefficients["small_machine"]
 ```
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
-```{r}
+```{r ,eval = FALSE}
 final_model$coefficients["num_vendex_nearby_300"]
 ```
 
@@ -342,7 +349,7 @@ final_model$coefficients["num_vendex_nearby_300"]
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the
 top20%/bottom20% ratio?
 
-```{r}
+```{r , eval = FALSE}
 hist(final_model$fitted.values, breaks = 40)
 
 
@@ -356,9 +363,6 @@ hist(final_model$fitted.values, breaks = 40)
 
 #### Choice
 Given the following 2 locations for a big machine:
-i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no
-nearby machines
-ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes
-nearby, 3 nearby Vendex machines
-Which location would you choose and why?
+i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines
+ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines Which location would you choose and why?
 
