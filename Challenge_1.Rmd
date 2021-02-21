@@ -79,19 +79,15 @@ Category named "Milk based" has highest average price whereas category "Sugar Ca
 Within category "Drinks", highest average price is of "Milk based" (3.4250) and lowest is of "Juice, tea and smoothies" (2.8625) 
 Within category "snack", highest average price is of "Salty" (2.725) and lowest is of "Sugar Candy" (2.300)
 
-```{r}
-product_data[ ,.(avg_price= mean(price)), by = category][avg_price == min(avg_price) | avg_price == max(avg_price)]
-```
-Drinks with the highest and lowest average price
-```{r}
-product_data[ type_drink_snack == 'drink' ,.(avg_price= mean(price)), 
-                                       by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
+How many products are there?
 ```{r}
 uniqueN(product_data$product_name)
 ```
+Which category has the highest number of products?
 ```{r}
 product_data[ , .(.N), by = category][ N == max(N)]
 ```
+
 Highest and lowest price in category
 ```{r}
 product_data[ ,.(avg_price= mean(price)), by = category][avg_price == min(avg_price) | avg_price == max(avg_price)]
