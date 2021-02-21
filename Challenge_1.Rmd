@@ -53,11 +53,16 @@ More than half of the vending machines are plased close to transportation,while 
 
 ### Products 
 ```{r}
-product_names <- unique(product_data$product_name)
 number_of_products <- uniqueN(product_data$product_name)
 product_dist <- product_data[,.(.N, mean_price = round(mean(price),4)), by=category][order(-N)]
 product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),4)), by = .(category, type_drink_snack)][order(-mean_price)]
 number_of_products; product_dist; product_type_dist
+
+
+highest_category<-product_data[ , .(.N), by = category][ N == max(N)]
+highest_avg_price_category<-product_data[ ,.(avg_price= mean(price)), by = category][avg_price == min(avg_price) | avg_price == max(avg_price)]
+highest_avg_price_drink<-products[ type_drink_snack == 'drink' ,.(avg_price= mean(price)), by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
+products[ type_drink_snack == 'snack' ,.(avg_price= mean(price)), by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
 ```
 There are in total 63 different products, classified as drink or snack, which are distributed in 8 different categories.
 Carbonates and energy drinks is the category with most products, followed by chocolate based snacks with 11 different products. 
