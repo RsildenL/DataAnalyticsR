@@ -404,10 +404,6 @@ summary(m1)
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
 
-
-#auc_train <- 0
-#auc_test <- 0
-
 for (i in 1:5){
   train <- model_data[index !=i,]
   test <- model_data[index == i,]
@@ -416,8 +412,6 @@ for (i in 1:5){
      data = train)
   pred_train1 <- predict(final_model, newdata = train, type = "response")
   pred_test1 <- predict(final_model, newdata = test, type = "response")
-  #auc_train[i] <- auc(train$daily_sales, pred_train1)
-  #auc_test[i] <- auc(test$daily_sales, pred_test1)
 }
 
 summary(final_model)
