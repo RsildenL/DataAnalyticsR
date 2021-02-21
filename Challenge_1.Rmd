@@ -248,9 +248,9 @@ machine_data$income_average[machine_data$income_average==mean(machine_data$incom
 
 ```
 ```{r}
-#arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
-#arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
-#arcvi_descriptive(model_data$income_average, model_data$daily_sales)
+arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
+arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
+arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 
