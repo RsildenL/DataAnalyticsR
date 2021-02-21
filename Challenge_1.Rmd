@@ -91,28 +91,20 @@ In march are 2494 vending machines selling products, hereof 1536 big machines an
 From the distibution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
 
 ```{r}
-transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
-transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
-
-sales_dist <- transactions_march_dist[,.(.N, mean_sales = mean(N)), by=machine]
-sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
-
-sales_dist2 <- sales_dist[,.(avg_daily_items = round(mean(mean_sales),2), num_machines= .N, tot_products = sum(N)), by = small_machine]
-sales_dist2$products_per_machine <- sales_dist2[,.(tot_products/num_machines)]
-
-sales_dist2
-boxplot(sales_dist$mean_sales,
-        sales_dist[small_machine == 1,]$mean_sales, 
-        sales_dist[small_machine == 0,]$mean_sales, 
+march <- merged_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
+march_avg_size <- march[,.(mean_items=mean(N)),by=.(machine, small_machine)]
+march_avg<-march_avg_size[,.(avg_daily_items=sum(mean_items)/uniqueN(machine)),by=small_machine]
+march_avg
+```
+```{r}
+boxplot(march_avg_size$mean_items,
+        march_avg_size[small_machine == 1,]$mean_items, 
+        march_avg_size[small_machine == 0,]$mean_items, 
         main = "Daily Sales Distribution",
         names = c("all machines", "small machines", "big machines"),
         ylab = "daily sales")
 ```
-```{r}
-march<-merge_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
-march_avg_small<-march[,.(mean_items=mean(N)),by=.(machine, small_machine)]
-march_avg<-march_avg_small[,.(mean_iteams1=sum(mean_items)/uniqueN(machine)),by=small_machine]
-```
+
 
 ## Question 2: Plot interpretation 
 ![](Q2.JPG)
