@@ -367,6 +367,7 @@ model_data <- merge(machine_data, daily_items_sold)
 ```{r}
 
 model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_600)] <- median(model_data$total_number_of_routes_600, na.rm=TRUE)
+
 summary(model_data)
 ### WHAT TO DO WITH NA's??
 ```
