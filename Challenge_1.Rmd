@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(tidyverse)
 library(pROC)
+library("openair")
 ```
 
 Reading the data
@@ -18,10 +19,11 @@ Reading the data
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
-
+transaction_data$date <- as.Date(transaction_data$date)
 merged_data <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
 merged_data <- merge(merged_data, machine_data, by= "machine")
 ```
+
 
 ## Question 1: General overview of the data
 ### Machines
@@ -61,35 +63,28 @@ The milk based drinks has the highest average price of 3.43, while sugar candy s
 
 ### Transactional data
 ```{r}
-library("openair")
-transaction_data$date <- as.Date(transaction_data$date)
 transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
-```
-
-
-```{r}
-### WHY DOES WE loose one row(machine)???
 transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
 
-uniqueN(transactions_march_dist$machine)
-uniqueN(transactions_march_dist$date)
-
-sales_dist <- transactions_march_dist[,.(mean_sales = mean(N)), by=machine]
+sales_dist <- transactions_march_dist[,.(.N, mean_sales = mean(N)), by=machine]
 sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
 sales_dist
 
-sales_dist2 <- sales_dist[,.(avg_sales = mean(mean_sales)), by = small_machine]
+sales_dist2 <- sales_dist[,.(num_machines= .N, tot_products = sum(N), avg_sales = round(mean(mean_sales),4)), by = small_machine]
+sales_dist2$products_per_machine <- sales_dist2[,.(tot_products/num_machines)]
 sales_dist2
 plot(sales_dist)
 boxplot(sales_dist$mean_sales)
 ```
+
+In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines sell more products in total and have a higher average of sold products per machine per day. However, when accounting for the whole month and the number of machines, the small and big machines have very similar total products sold per machine. 
+
 
 ```{r}
 daily_items_sold <- transaction_data[, .(.N), by=.(machine, date)]
 summary(daily_items_sold)
 
 ```
-################ MISSING INTERPRETATION 
 
 
 ## Question 2: Plot interpretation 
@@ -102,10 +97,13 @@ a. Is there a general trend in the number of snacks and drinks as the months pro
 
 
 ```{r}
-daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, date)]
-daily_items_sold <- merged_data[, .(.N), by= date]
+daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, as.Date(date))]
+#daily_items_sold <- merged_data[, .(.N), by= date]
 
 daily_items_sold
+
+daily_num_snack <- daily_items_sold[type_drink_snack=="snack",] 
+plot(daily_num_snack)
 ```
 
 
