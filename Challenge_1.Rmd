@@ -92,30 +92,17 @@ summary(daily_items_sold)
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-* drinks: an linear increasing trend (ANOVA?) - increasing with temprature?
-* snack: flat/no trend
+* drinks: an linear increasing trend increasing with temprature?
+* snack: no trend
 
 
-```{r}
-daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, date)]
-#daily_items_sold <- merged_data[, .(.N), by= date]
-
-daily_items_sold
-
-daily_num_snack <- daily_items_sold[type_drink_snack=="snack",] 
-plot(daily_num_snack$N)
-```
-
-
-```{r}
-
-st_trend<-merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
-plot(st_trend$date,st_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
-abline(st_trend$avg_daily~st_trend$date)
+```{r drinks trend}
+drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
+plot(drink_trend$date,drink_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
 
 trendline(
-  st_trend$date,
-  st_trend$avg_daily,
+  drink_trend$date,
+  drink_trend$avg_daily,
   model = "line2P",
   Pvalue.corrected = TRUE,
   linecolor = "blue",
@@ -126,12 +113,13 @@ trendline(
   show.pvalue = TRUE)
 ```
 
-```{r}
-st_trend<-merged_data[type_drink_snack == 'snack',.(avg_daily=.N/uniqueN(machine)), by=.(date)][order(date)]
-plot(st_trend$date,st_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
+```{r snack trend}
+snack_trend <- merged_data[type_drink_snack == 'snack',.(avg_daily=.N/uniqueN(machine)), by=.(date)][order(date)]
+plot(snack_trend$date,snack_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
+
 trendline(
-  st_trend$date,
-  st_trend$avg_daily,
+  snack_trend$date,
+  snack_trend$avg_daily,
   model = "line2P",
   Pvalue.corrected = TRUE,
   linecolor = "blue",
@@ -144,10 +132,33 @@ trendline(
 
 
 b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?
-* weekly seasonality (spikes on weekends?)
+* weekly seasonality for both snack and drinks
+* Drinks: weekend average of 4.57 vs. weekday average of 3.39
+* Snacks: weekend average of 7.25 vs. weekday average of 5.61
 
+The vending machines are more used in the weekends than in the weekdays. A potential explanation of this could be that the people are travelling more during the weekends and thus the vending machine close to transporation means are more used. 
+
+```{r}
+drink_trend[,day:=weekdays(date)]
+mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily) # weekend average of 4.57
+mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily) # week average of 3.39
+perday<-drink_trend[,day_avg:=mean(avg_daily)]
+week_trend<-drink_trend[,.(day_avg=mean(avg_daily)),by=day]
+plot(1:7,week_trend$day_avg,type = "l")
+```
+
+```{r}
+snack_trend[,day:=weekdays(date)]
+mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily) # weekend average of 7.25
+mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily) # week average of 5.61
+perday <- snack_trend[,day_avg:=mean(avg_daily)]
+week_trend <- snack_trend[,.(day_avg=mean(avg_daily)),by=day]
+plot(1:7,week_trend$day_avg,type = "l")
+```
 
 ### Question 3: Distribution of income 
+#### Outliers
+There are some extreme values in the distribution of income across, which could be interpreted as outliers. 
 
 ```{r}
 summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
@@ -185,6 +196,7 @@ plot(machine_data$small_machine, machine_data$income_average)
 plot(machine_data$machine, machine_data$income_average)
 ```
 
+#### NA's
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
 uniqueN(income_NA)
