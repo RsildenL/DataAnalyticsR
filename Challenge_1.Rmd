@@ -202,7 +202,7 @@ boxplot(log(machine_data$income_average), log(income_small), log(income_big),
 summary(log(machine_data$income_average)); summary(log(income_big)) ; summary(log(income_small))
 ```
 There are multiple ways to detect and remove outliers. We will employ the commonly used Interquartile range (IQR), a measure of statistical dispersion consisting in computing the difference between the 75th and 25th percentiles, or between upper and lower quartiles so that IQR = Q3 - Q1. 
-An upper and lower thresholds are then established by multiplying the IQR by 1.5 (a constant used to discern outliers). Any number greater than Q3 + 1.5IQR will be identified as an outlier. In a similar way, values smaller than Q1-1.5XIQR will also be classified as outliers.
+An upper and lower thresholds are then established by multiplying the IQR by 1.5 (a constant used to discern outliers). Any number greater than Q3 + 1.5xIQR will be identified as an outlier. In a similar way, values smaller than Q1-1.5xIQR will also be classified as outliers.
 
 ```{r}
 summary(machine_data$income_average)  
