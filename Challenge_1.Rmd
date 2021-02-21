@@ -65,6 +65,10 @@ Carbonates and energy drinks is the category with most products, followed by cho
 The milk based drinks has the highest average price of 3.43, while sugar candy snack has the lowest average price.
 
 ### Transactional data
+In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines sell more products in total and have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more exrene observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. However, when accounting for the whole month and the number of machines, the small and big machines have similar total products sold per machine. 
+
+From the distibution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
+
 ```{r}
 transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
 transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
@@ -83,16 +87,6 @@ boxplot(sales_dist$mean_sales,
         names = c("all machines", "small machines", "big machines"),
         ylab = "daily sales")
 ```
-
-In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines sell more products in total and have a higher average of sold products per machine per day. However, when accounting for the whole month and the number of machines, the small and big machines have very similar total products sold per machine. 
-
-
-```{r}
-daily_items_sold <- transaction_data[, .(.N), by=.(machine, date)]
-summary(daily_items_sold)
-
-```
-
 
 ## Question 2: Plot interpretation 
 ![](Q2.JPG)
