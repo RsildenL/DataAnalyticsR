@@ -370,7 +370,7 @@ summary(model_data)
 ```
 
 
-#### Significant variables
+#### a: Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
 Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)
 
@@ -382,20 +382,23 @@ summary(m0)
 ```
 The total number of routes and number of vendex machines nearby is insignificant features, by checking the p-values.
 
-#### Linear model 
+#### b: Linear model 
 Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?
 ```{r}
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
-colnames(model_data)
 ```
 
+
+Include all variables but use log transport instead
+* this makes the number of vendex machines nearby significant 
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
         data = model_data)
 summary(m1)
 ```
+
 #### train model using cross-validation
 ```{r, eval = FALSE}
 # 5 fold : Train-test split
