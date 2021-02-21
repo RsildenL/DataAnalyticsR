@@ -38,11 +38,9 @@ machine_dist <- machine_data[,.(.N), by=small_machine]
 machine_dist[,percent := round(N/number_of_machines, 4)]
 machine_dist$type <- ifelse(machine_dist$small_machine == 1, 
                             yes = "small", no = "large")
-machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
-```
+machine_dist <- machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
 
-```{r}
-
+machine_dist[,.(type,N, percent)]
 ```
 
 ```{r}
