@@ -245,7 +245,7 @@ is.na(machine_data$income_average)
 na.omit(machine_data$income_average)
 #2: substitute missing values with the average value
 machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
-
+#3: substitute missing values with mean of small machine and categories 
 ```
 ```{r}
 #arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
@@ -317,7 +317,7 @@ colnames(model_data)
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-    data = model_data)
+        data = model_data)
 summary(m1)
 ```
 #### train model using cross-validation
