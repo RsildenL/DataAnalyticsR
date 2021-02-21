@@ -354,7 +354,7 @@ a) Decide in which locations to place new machines
 b) Construct a benchmark for each machine: how much should it sell according to its location? This can be used to detect problems in machines (i.e. illumination, bad placement within a station etc.)
 
 ```{r}
-machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
+machine_data[,not_trainstation:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 #### we have a lot of NAs should we do something about them?
 
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
@@ -376,7 +376,7 @@ Hint: Recall that to check the parameters of a glm model called “model1” you
 
 ```{r}
 m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes_600
-     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+     + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
     data = model_data)
 summary(m0)
 ```
@@ -393,7 +393,7 @@ Include all variables but use log transport instead
 * this makes the number of vendex machines nearby significant 
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
-     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+     + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
         data = model_data)
 summary(m1)
 ```
@@ -408,7 +408,7 @@ for (i in 1:5){
   train <- model_data[index !=i,]
   test <- model_data[index == i,]
   final_model <- glm(daily_sales ~ small_machine + income_average + log_transport
-     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
+     + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
      data = train)
   pred_train1 <- predict(final_model, newdata = train, type = "response")
   pred_test1 <- predict(final_model, newdata = test, type = "response")
@@ -449,14 +449,28 @@ comparison$ratio <- comparison$predictions/comparison$real
 comparison$difference <- comparison$predictions - comparison$real
 
 comparison <- comparison[order(rank(predictions), decreasing = T)]
-
-comparison
-
+```
+Top 20% predictions
+```{r}
+comparison[1:(0.2*length(comparison$predictions)),]
+```
+Bottom 20% predictions
+```{r}
+comparison[(0.8*length(comparison$predictions)):(length(comparison$predictions))]
+```
+the real daily sales of the top 20% machines according to model
+```{r}
 top20 <- mean(comparison$ratio[1:(0.2*length(comparison))])
-bottom20 <- mean(comparison$ratio[(0.8*length(comparison)):(length(comparison))])
-
 top20
+```
+the real daily sales of the bottom20% machines according to model
+```{r}
+bottom20 <- mean(comparison$ratio[(0.8*length(comparison)):(length(comparison))])
 bottom20
+```
+the top20%/bottom20% ratio
+```{r}
+top20/bottom20
 ```
 
 
@@ -465,23 +479,17 @@ Given the following 2 locations for a big machine:
 i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines
 ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines Which location would you choose and why?
 
+```{r}
+option1 <- predict(final_model, 
+                   data.frame(small_machine=0,income_average=0,log_transport=log(20,base=10),num_hotels_45=2,
+                              num_vendex_nearby_300=0,not_trainstation=0))
+option2 <- predict(final_model, 
+                   data.frame(small_machine=0,income_average=0,log_transport=log(10,base=10),num_hotels_45=0,
+                                num_vendex_nearby_300=3,not_trainstation=1))
 
+option1
+option2
 
-
-
-transactions = transactions[, .N, list(date, machine)]  
-data = merge(machines, transactions, all=TRUE)
-data[, train_AvgDailyPassengers := ifelse(is.na(train_AvgDailyPassengers),1,0), ]
-data[, income_average:= ifelse(is.na(income_average),0,income_average)]
-data[, total_number_of_routes_600:= ifelse(is.na(total_number_of_routes_600),0,total_number_of_routes_600)]
-m0 = glm(N ~ small_machine + income_average + total_number_of_routes_600 + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
-#a. Do all variables show statistical significance? Which ones doesn’t? How do you know? 
-summary(m0)
-#b. Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance? 
-data[, log_transport:= log(total_number_of_routes_600, base= 10)]
-data = data[!is.infinite(log_transport)]
-m1 = glm(N ~ small_machine + income_average + log_transport + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
-summary(m1)
-#c. How many daily items less do small machines sell all other factors remaining equal?
+```
 
 
