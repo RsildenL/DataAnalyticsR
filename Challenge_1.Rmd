@@ -254,6 +254,7 @@ low<- Q[1]-1.5*iqr # Lower Range
 
 machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
 
+summary(machine_data_clean$income_average)
 ```
 
 #### NA's
@@ -319,7 +320,9 @@ big_others <- with(means, mean[small_machine == 0 & location_type == 'others'])
 big_transport <- with(means, mean[small_machine == 0 & location_type == 'transport'])
 big_petrol <- with(means, mean[small_machine == 0 & location_type == 'petrol station'])
 
-na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'others' & is.na(na_mean$income_average)] <- small_others
+na_mean$income_average[na_mean$small_machine==1 
+                       & na_mean$location_type == 'others' 
+                       & is.na(na_mean$income_average)] <- small_others
 na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'transport' & is.na(na_mean$income_average)] <- small_transport
 na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'petrol station' & is.na(na_mean$income_average)] <- small_petrol
 
@@ -345,9 +348,6 @@ summary(machine_data$num_hotels)
 ```
 
 
-
-
-
 ### Question 5: Location score
 In this exercise we will build a location score that tells us what’s the average daily items per machine depending on the location it is placed. This model could be used to 
 a) Decide in which locations to place new machines 
@@ -363,17 +363,14 @@ daily_items_sold
 
 model_data <- merge(machine_data, daily_items_sold)
 ```
-
 ```{r}
-
 model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_600)] <- median(model_data$total_number_of_routes_600, na.rm=TRUE)
-
+model_data$income_average <- na_mean$income_average
 summary(model_data)
-### WHAT TO DO WITH NA's??
 ```
 
 
-#### Significant variables
+#### a: Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
 Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)
 
@@ -383,24 +380,25 @@ m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes
     data = model_data)
 summary(m0)
 ```
-The total number of routes and number of vendex machines nearvy is insignificant features. 
+The total number of routes and number of vendex machines nearby is insignificant features, by checking the p-values.
 
-#### Linear model 
-Build another linear model but this time instead of using the variables
-“total_number_of_routes_600 use the log of that variable in base 10 calling it
-“log_transport”. Does this new variable show statistical significance?
+#### b: Linear model 
+Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?
 ```{r}
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
-colnames(model_data)
 ```
 
+
+Include all variables but use log transport instead
+* this makes the number of vendex machines nearby significant 
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
         data = model_data)
 summary(m1)
 ```
+
 #### train model using cross-validation
 ```{r, eval = FALSE}
 # 5 fold : Train-test split
@@ -449,8 +447,7 @@ final_model$coefficients["num_vendex_nearby_300"]
 ```
 
 #### Top and bottom ratio
-Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the
-top20%/bottom20% ratio?
+Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the top20%/bottom20% ratio?
 
 ```{r , eval = FALSE}
 hist(final_model$fitted.values, breaks = 40)
