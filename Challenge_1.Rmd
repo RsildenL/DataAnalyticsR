@@ -254,6 +254,7 @@ low<- Q[1]-1.5*iqr # Lower Range
 
 machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
 
+summary(machine_data_clean$income_average)
 ```
 
 #### NA's
@@ -319,7 +320,9 @@ big_others <- with(means, mean[small_machine == 0 & location_type == 'others'])
 big_transport <- with(means, mean[small_machine == 0 & location_type == 'transport'])
 big_petrol <- with(means, mean[small_machine == 0 & location_type == 'petrol station'])
 
-na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'others' & is.na(na_mean$income_average)] <- small_others
+na_mean$income_average[na_mean$small_machine==1 
+                       & na_mean$location_type == 'others' 
+                       & is.na(na_mean$income_average)] <- small_others
 na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'transport' & is.na(na_mean$income_average)] <- small_transport
 na_mean$income_average[na_mean$small_machine==1 & na_mean$location_type == 'petrol station' & is.na(na_mean$income_average)] <- small_petrol
 
@@ -363,13 +366,10 @@ daily_items_sold
 
 model_data <- merge(machine_data, daily_items_sold)
 ```
-
 ```{r}
-
 model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_600)] <- median(model_data$total_number_of_routes_600, na.rm=TRUE)
-
+model_data$income_average <- na_mean$income_average
 summary(model_data)
-### WHAT TO DO WITH NA's??
 ```
 
 
