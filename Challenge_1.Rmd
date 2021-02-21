@@ -388,3 +388,21 @@ Given the following 2 locations for a big machine:
 i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines
 ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines Which location would you choose and why?
 
+
+
+
+
+transactions = transactions[, .N, list(date, machine)]  
+data = merge(machines, transactions, all=TRUE)
+data[, train_AvgDailyPassengers := ifelse(is.na(train_AvgDailyPassengers),1,0), ]
+data[, income_average:= ifelse(is.na(income_average),0,income_average)]
+data[, total_number_of_routes_600:= ifelse(is.na(total_number_of_routes_600),0,total_number_of_routes_600)]
+m0 = glm(N ~ small_machine + income_average + total_number_of_routes_600 + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
+#a. Do all variables show statistical significance? Which ones doesn’t? How do you know? 
+summary(m0)
+#b. Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance? 
+data[, log_transport:= log(total_number_of_routes_600, base= 10)]
+data = data[!is.infinite(log_transport)]
+m1 = glm(N ~ small_machine + income_average + log_transport + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
+summary(m1)
+
