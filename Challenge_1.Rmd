@@ -389,7 +389,6 @@ summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
 ```
 
-
 Include all variables but use log transport instead
 * this makes the number of vendex machines nearby significant 
 ```{r}
@@ -418,8 +417,8 @@ auc(train$daily_sales, pred_train1)
 auc(test$daily_sales, pred_test1)
 
 
-auc_train <- 0
-auc_test <- 0
+#auc_train <- 0
+#auc_test <- 0
 
 for (i in 1:5){
   train <- model_data[index !=i,]
@@ -429,8 +428,8 @@ for (i in 1:5){
      data = train)
   pred_train1 <- predict(final_model, newdata = train, type = "response")
   pred_test1 <- predict(final_model, newdata = test, type = "response")
-  auc_train[i] <- auc(train$daily_sales, pred_train1)
-  auc_test[i] <- auc(test$daily_sales, pred_test1)
+  #auc_train[i] <- auc(train$daily_sales, pred_train1)
+  #auc_test[i] <- auc(test$daily_sales, pred_test1)
 }
 
 summary(final_model)
