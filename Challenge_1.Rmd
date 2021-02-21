@@ -266,8 +266,6 @@ There are 182 NA values in the income average feature. Out of theses 182 observa
 * no machines that have more than 1 NA
 * 59% of NA's are big machines, 41% are small machines
 * 50% of NA's are located close to transportation
-
-##################### HOW SHOULD WE Account for daily sales as he write in the hint?
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
 uniqueN(income_NA)
@@ -275,21 +273,6 @@ uniqueN(income_NA)
 income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by=location_type]
 income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= small_machine]
 income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-N)]
-```
-
-```{r}
-income_NA <- machine_data[is.na(income_average), ]
-uniqueN(income_NA)
-
-income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by=location_type]
-income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= small_machine]
-income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-N)]
-```
-
-```{r}
-#arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
-#arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
-#arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 Option 1: Remove NA's
