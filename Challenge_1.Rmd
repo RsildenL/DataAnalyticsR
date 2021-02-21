@@ -49,7 +49,7 @@ machine_dist_by_location [,percent := round(N/number_of_machines,4)]
 machine_dist_by_location
 ```
 There are 2495 vending machines, wheras 38% (959) of them are small and 62% (1536) are large vending machines.
-More than half of the vending machines are plased close to transportation,while only about 14% are places close to a petrol station. 
+More than half of the vending machines are plased close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
 
 ### Products 
 ```{r}
