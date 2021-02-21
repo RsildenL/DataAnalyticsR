@@ -462,6 +462,9 @@ hist(final_model$fitted.values, breaks = 40)
 #train[, .(avg_sales = mean(daily_sales)), by = 'intervals']
 ```
 
+```{r}
+
+```
 
 
 #### Choice
@@ -486,4 +489,6 @@ data[, log_transport:= log(total_number_of_routes_600, base= 10)]
 data = data[!is.infinite(log_transport)]
 m1 = glm(N ~ small_machine + income_average + log_transport + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
 summary(m1)
+#c. How many daily items less do small machines sell all other factors remaining equal?
+
 
