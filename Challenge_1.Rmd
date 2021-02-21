@@ -403,18 +403,6 @@ summary(m1)
 # 5 fold : Train-test split
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
-# Train/Test split: create a train with index 1:4, test with index 5
-train <- model_data[index %in% 1:4,]
-test <- model_data[index == 5,]
-
-final_model <- glm(daily_sales ~ small_machine + income_average + log_transport
-     + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-    data = train)
-
-pred_train1 <- predict(m1, newdata = train, type = "response")
-pred_test1 <- predict(m1, newdata = test, type = "response")
-auc(train$daily_sales, pred_train1)
-auc(test$daily_sales, pred_test1)
 
 
 #auc_train <- 0
