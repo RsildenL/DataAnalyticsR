@@ -22,7 +22,6 @@ library(tidyverse)
 library(pROC)
 library(openair)
 library(basicTrendline)
-library(kableExtra)
 ```
 
 Reading the data
