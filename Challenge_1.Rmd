@@ -107,7 +107,7 @@ product_dist; product_type_dist
 ### Transactional data
 In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
 
-From the distibution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
+From the distribution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically placed than others. Another reason could be that the assortment is better.
 
 ```{r}
 march <- merged_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
@@ -130,13 +130,6 @@ Snacks with the highest and lowest average price
 product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)), 
                                        by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
 ```
-
-
-
-### Transactional data
-In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
-
-From the distribution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
 
 
 ## Question 2: Plot interpretation 
