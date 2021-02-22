@@ -259,7 +259,7 @@ summary(machine_data_clean$income_average)
 ```
 Moving forward, the income average are chosen to be kept as is, with no adjustment of outliers. This is done, as we interpret the outliers not as unlikely observations, though are we aware of consequences that this can cause more noicy predictions in the models in question 5.
 
-### NA's
+### Missing values
 Missing data is a very common problem that can reduce the statistical power of our data or to produce biased estimates that will invalidate our predictions.
 
 There are 182 NA values in the income average feature. Out of theses 182 observations, 104 of them are also NA in the train average daily passengers and train average day passengers.
