@@ -71,7 +71,7 @@ machine_dist_by_location
 1d) How many products are there? Which category has the highest number of products?
 
 There are 63 different types of products.
-The category "Carbonates and energy drinks" has highest number of products (13 products).
+The category "Carbonates and energy drinks" has the highest number of products (13 products).
 ```{r}
 uniqueN(product_data$product_name)
 ```
@@ -82,8 +82,8 @@ product_data[ , .(.N), by = category][ N == max(N)]
 1e) Which category has the highest and lowest average price? And within snacks or
 drinks? 
 
-The category "Milk based" has the highest average price whereas category "Sugar Candy" has the lowest average price overall.
-Within the category "Drinks", the highest average price is of "Milk based" (3.4250) and lowest is of "Juice, tea and smoothies" (2.8625).
+The category "Milk based" has the highest average price, whereas category "Sugar Candy" has the lowest average price overall.
+Within the category "Drinks", the highest average price corresponds to "Milk based" (3.4250) and the lowest corresponds to "Juice, tea and smoothies" (2.8625).
 Within the category "snack", the highest average price is of "Salty" (2.725) and lowest is of "Sugar Candy" (2.300).
 
 
@@ -149,7 +149,7 @@ product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)),
 ### General Trend
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-The graph for drinks shows a general increase in daily_items across the available time frame. To better illustrate this (linear) trend, we have created a new plot. The graph for snacks shows no such trend. Instead, the trend line of the new plot for snacks is a horizontal line. The reason for the increasing trend for drinks could be related to seasonal consumption habits. Rising temperatures might stimulate the purchase of beverages without having an effect on the number of snack items sold. 
+The graph for drinks shows a general increase in daily_items across the available time frame. To better illustrate this (linear) trend, we have created a new plot. The graph for snacks shows no such trend. Instead, the trend line of the new plot for snacks is a horizontal (flat) line. The reason for the increasing trend for drinks could be related to seasonal consumption habits. Rising temperatures might stimulate the purchase of beverages without having an effect on the number of snack items sold. 
 
 ```{r drinks trend}
 drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
@@ -191,7 +191,7 @@ b. Is there shorter time period trend as well? Is it the same for snacks and dri
 * Drinks: weekend average of 4.57 vs. weekday average of 3.39
 * Snacks: weekend average of 7.25 vs. weekday average of 5.61
 
-The vending machines are used more frequently on weekends than on the weekdays. A potential explanation for this could be that people travel more on weekends as they have more time. Thus, vending machines, especially those in close proximity of public transport, might be more highly frequented on Saturdays and Sundays.
+The vending machines are used more frequently on weekends than on the weekdays. A potential explanation for this could be that people travel more on weekends, as they have more time. Thus, vending machines, especially those in close proximity of public transport, might be more highly frequented on Saturdays and Sundays.
 
 
 ```{r}
@@ -213,7 +213,7 @@ merge(snack_dist, drink_dist)
 
 ## Question 3: Distribution of income 
 ### Outliers
-There are some extreme values in the distribution of income across, which could be interpreted as outliers. This means that there are some machines that generate much more revenue than others, and could be a result of a strategically good location of the vending machines. These outliers seem to be distributed across both small and big machines.
+There are some extreme values in the distribution of income, which could be interpreted as outliers. This means that there are some machines that generate much more revenue than others, and this could be a result of a strategically better location of these vending machines. These outliers seem to be distributed across both small and big machines.
 ```{r}
 income_small <- machine_data[small_machine==1, income_average]
 income_big <- machine_data[small_machine==0, income_average]
@@ -256,7 +256,7 @@ machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] -
 
 summary(machine_data_clean$income_average)
 ```
-Moving forward, the income averages are chosen to be kept as they are, with no adjustment of outliers. This is done because we do not interpret the outliers as unlikely observations, although we are aware of the consequences that this may lead to more noisy predictions in the models in question 5.
+Moving forward, the income averages are chosen to be kept as they are, with no adjustment of outliers. This is done because we do not interpret these outliers as errors, although we are aware that this may lead to more noisy predictions in the models in question 5.
 
 ### Missing values
 Missing data is a very common problem that can reduce the statistical power of our data or to produce biased estimates that will invalidate our predictions.
@@ -426,13 +426,13 @@ summary(final_model)
 ### Small machines
 How many daily items less do small machines sell all other factors remaining equal?
 
-After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.667252 fewer units per day than big machines.
+After removing statistically non-significant variables from our model and assuming all other factors remain equal, a machine that is small sells on average 1.667252 fewer units per day than big machines.
 ```{r }
 final_model$coefficients["small_machine"]
 ```
 
 ### Number of machines nearby
-What’s effect on machine sales does having other nearby machines all other factors remaining equal?
+What effect on machine sales does having other nearby machines all other factors remaining equal?
 
 With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1229905 per day.
 ```{r }
@@ -500,4 +500,4 @@ option1
 option2
 
 ```
-Given the two options for locations, taking into account their respective factors, we would choose the first option because we predict higher sales for that location (10.16578 instead of 5.978487 in the daily sales variable), assuming that both locations cost us the same to acquire and maintain.
+Given the two options for locations, taking into account their respective factors, we would choose the first option because we predict higher sales for that location (10.16578 instead of 5.978487 in the daily sales variable), assuming that both locations have the same acquisition and maintenance costs. 
