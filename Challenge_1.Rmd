@@ -2,7 +2,7 @@
 title: "Challenge 1: General Overview and Data Treatment"
 subtitle: "Data Analytics with R"
 author: "Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer, Henrik Mülheims, Martí Pérez & others" 
-date: "2/9/2021"
+date: "22/02/2021"
 output: 
     html_document: 
         code_folding: hide
@@ -31,12 +31,15 @@ merged_data <- merge(merged_data, machine_data, by= "machine")
 ## Question 1: General overview of the data
 ### Machines
 1a) How many machines are there? 
+
 There are 2495 vending machines in total.
 
 1b) What percentage of them are small? 
+
 Out of those 38% (959) are small and 62% (1536) are large vending machines.
 
 1c) How do they distribute in terms of location type i.e. transport, petrol station?
+
 More than half of the vending machines are placed close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
 
 ```{r}
@@ -125,6 +128,7 @@ boxplot(march_avg_size$mean_items,
         names = c("all machines", "small machines", "big machines"),
         ylab = "daily sales")
 ```
+
 Snacks with the highest and lowest average price
 ```{r}
 product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)), 
