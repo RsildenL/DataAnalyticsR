@@ -289,13 +289,11 @@ dim(na_zero)
 
 Option 3: Substitute missing values with the mean income average 
 
-Therefore, another way to deal with missing values is to replace the missing values with the mean variable, more reaonable value than zero, for the income average. The advantage is that we keep those instances but this could create some correlation problems and affect the variability of our data.
+A similar, biut more reasonable approch to deal with missing values is to replace the missing values with the mean of the income average. The advantage is that we keep those instances but this could create some correlation problems and affect the variability of our data.
 ```{r}
 machine_data_replace_NA_mean <- machine_data
 machine_data_replace_NA_mean$income_average[is.na(machine_data_replace_NA_mean$income_average)] <- mean(machine_data$income_average, na.rm = TRUE)
 dim(machine_data_replace_NA_mean)
-    
-sum(is.na(machine_data_replace_NA_mean$income_average))
 ```
 
 Option 4: substitute missing values with average income of machine 
@@ -333,15 +331,15 @@ na_mean$income_average[na_mean$small_machine==0 & na_mean$location_type == 'petr
 
 
 na_mean$income_average[is.na(na_mean$income_average)]
+dim(na_mean)
 ```
 
 
 ### Question 4: Boxplot interpretation 
 ![Boxplot](Q4.JPG)
+
 According to this boxplot the median number of hotels in the machine area is 0. This means that more often than not machines do not have any hotels in the area. In this cases, the median also coincides with both of the minimum and the 1st quantile. 
 The 3rd quantile is 1, while the mean of the observations is 2. This is due to the fact that most of the vending machines do not have any hotels nearby, while about half of those which have hotels nearby (i.e. the 4th quantile) seem to have a relatively high number of hotels nearby (the maximum is 79 hotels nearby).
-
---> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
 
 ```{r}
 boxplot(machine_data$num_hotels)
@@ -356,15 +354,10 @@ b) Construct a benchmark for each machine: how much should it sell according to 
 
 ```{r}
 machine_data[,not_trainstation:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
-#### we have a lot of NAs should we do something about them?
-
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
 daily_items_sold <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
-daily_items_sold
-
 model_data <- merge(machine_data, daily_items_sold)
-```
-```{r}
+
 model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_600)] <- median(model_data$total_number_of_routes_600, na.rm=TRUE)
 model_data$income_average <- na_mean$income_average
 summary(model_data)
