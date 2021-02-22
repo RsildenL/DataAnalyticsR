@@ -362,7 +362,9 @@ model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_60
 model_data$income_average <- na_mean$income_average
 summary(model_data)
 ```
-
+Linear regression does not work well with missing values, in this dataset we have missing values for the total number of routes 600 and for income average. 
+* For the mimssing values in the total number of routes 600, with the median of the number of routes.
+* For the missing values in the income average we replace them with the categorical mean of the instance based on machine size and location type, as described as option 4 in question 3. 
 
 #### a: Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
