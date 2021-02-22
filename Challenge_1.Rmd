@@ -368,25 +368,27 @@ Linear regression does not work well with missing values, in this dataset we hav
 
 #### a: Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
-Hint: Recall that to check the parameters of a glm model called “model1” you need to run summary(model1)
 
+By checking the p-values of the coefficients, we can see that the total number of routes and number of vendex machines nearby is insignificant features. 
 ```{r}
 m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes_600
      + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
     data = model_data)
 summary(m0)
 ```
-The total number of routes and number of vendex machines nearby is insignificant features, by checking the p-values.
 
 #### b: Linear model 
 Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?
+
+By log transforming the total number of routes 600, the values becomes less extreme. This can be shown in the summary below of the original feature and the log tranformed feature, respectively 
 ```{r}
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
+summary(model_data$log_transport)
 ```
 
-Include all variables but use log transport instead
-* this makes the number of vendex machines nearby significant 
+Create new model, including all variables but use log transport instead.
+* All features are significant, including the number of vendex machines nearby  
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
@@ -394,7 +396,8 @@ m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
 summary(m1)
 ```
 
-#### train model using cross-validation
+#### training the model using cross-validation
+next we train the model using a 80/20 train/test split of the dataset and a 5-fold cross validation.
 ```{r }
 # 5 fold : Train-test split
 cfolds <- 5
