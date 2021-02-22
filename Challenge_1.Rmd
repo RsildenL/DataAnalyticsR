@@ -399,7 +399,7 @@ summary(m1)
 ```
 
 #### train model using cross-validation
-```{r, eval = FALSE}
+```{r }
 # 5 fold : Train-test split
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
@@ -418,26 +418,20 @@ summary(final_model)
 ```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
-```{r , eval = FALSE}
+```{r }
 final_model$coefficients["small_machine"]
 ```
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
-```{r ,eval = FALSE}
+```{r }
 final_model$coefficients["num_vendex_nearby_300"]
 ```
 
 #### Top and bottom ratio
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the top20%/bottom20% ratio?
 
-```{r , eval = FALSE}
+```{r }
 hist(final_model$fitted.values, breaks = 40)
-
-
-#train$intervals <- cut(x = final_model$fitted.values, quantile(final_model$fitted.values), 
-#                       labels = c("very low", "low", "medium", "high"), rep(TRUE))
-
-#train[, .(avg_sales = mean(daily_sales)), by = 'intervals']
 ```
 
 ```{r}
