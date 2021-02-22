@@ -254,7 +254,7 @@ summary(machine_data_clean$income_average)
 Moving forward, the income average are chosen to be kept as is, with no adjustment of outliers. This is done, as we interpret the outliers not as unlikely observations, though are we aware of consequences that this can cause more noicy predictions in the models in question 5.
 
 #### NA's
-Missing data is a very common problem that can reduce the satistical power of our data or to produce biased estimates that will invalidate our predictions.
+Missing data is a very common problem that can reduce the statistical power of our data or to produce biased estimates that will invalidate our predictions.
 
 There are 182 NA values in the income average feature. Out of theses 182 observations, 104 of them are also NA in the train average daily passengers and train average day passengers.
 * no machines that have more than 1 NA
@@ -271,7 +271,7 @@ income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-
 
 Option 1: Remove NA's
 
-To deal with missing values we can just to delete rows when a missing value appears. Our problem is fixed, however this result leads to having less data could affect the distribution our data, hence the predict capabilities of our model. The advantage of this method is that there are no approximation that could lead to noice in the model
+To deal with missing values we can just delete rows when a missing value appears. Our problem is fixed, however, this can affect the distribution of our data, hence the predictive capabilities of our model. The advantage of this method is that no approximation could lead to noise in the model.
 
 ```{r}
 machine_remove_NA <- machine_data[!is.na(machine_data$income_average), ]
@@ -289,7 +289,7 @@ dim(na_zero)
 
 Option 3: Substitute missing values with the mean income average 
 
-A similar, biut more reasonable approch to deal with missing values is to replace the missing values with the mean of the income average. The advantage is that we keep those instances but this could create some correlation problems and affect the variability of our data.
+A similar, but more reasonable approach to deal with missing values is to replace the missing values with the mean of the income average. The advantage is that we keep those instances but this could create some correlation problems and affect the variability of our data.
 ```{r}
 machine_data_replace_NA_mean <- machine_data
 machine_data_replace_NA_mean$income_average[is.na(machine_data_replace_NA_mean$income_average)] <- mean(machine_data$income_average, na.rm = TRUE)
@@ -298,7 +298,7 @@ dim(machine_data_replace_NA_mean)
 
 Option 4: substitute missing values with average income of machine 
 
-For this specific case we choose to replace the missing value with the mean income average of machine type and location type of the the instance where we have a missing value.This is an improvement from  the overall average in the last option, as this uses the mean of machines with more similar characteristics
+For this specific situation, we choose to replace the missing value with the mean income average of the machine type and location type of the instance where we have a missing value. This is an improvement from  the overall average in the last option, as this uses the mean of machines with more similar characteristics
 
 ```{r}
 w_na <- machine_data[!is.na(machine_data$income_average), ]
