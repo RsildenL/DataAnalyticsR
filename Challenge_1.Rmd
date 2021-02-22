@@ -3,7 +3,9 @@ title: "Challenge 1: General Overview and Data Treatment"
 subtitle: "Data Analytics with R"
 author: "Rebecca Silden Langlo, Afonso Penalva, Kevin Ganglbauer, Henrik Mülheims, Martí Pérez & others" 
 date: "2/9/2021"
-output: html_document
+output: 
+    html_document: 
+        code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -11,18 +13,22 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(tidyverse)
 library(pROC)
+library(openair)
+library(basicTrendline)
 ```
 
 Reading the data
-```{r}
+```{r , cache = TRUE}
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
+transaction_data$date <- as.Date(transaction_data$date)
+merged_data <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
+merged_data <- merge(merged_data, machine_data, by= "machine")
 
-# merge data
-transaction_product <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
-merged_data <- merge(transaction_product, machine_data, by= "machine")
+
 ```
+
 
 ## Question 1: General overview of the data
 ### Machines
@@ -32,138 +38,235 @@ machine_dist <- machine_data[,.(.N), by=small_machine]
 machine_dist[,percent := round(N/number_of_machines, 4)]
 machine_dist$type <- ifelse(machine_dist$small_machine == 1, 
                             yes = "small", no = "large")
+machine_dist <- machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
+
+machine_dist[,.(type,N, percent)]
 ```
 
 ```{r}
-machine_dist %>% add_row(small_machine = NA, N = number_of_machines, percent = 1, type = "total") 
-```
-
-```{r}
-machine_dist_by_location <- machine_data[,.(.N),by = .(small_machine, location_type)]
+machine_dist_by_location <- machine_data[,.(.N),by = location_type]
 machine_dist_by_location [,percent := round(N/number_of_machines,4)]
-machine_dist_by_location$type <- ifelse(machine_dist_by_location$small_machine == 1,
-                            yes = "small", no = "large")
 machine_dist_by_location
 ```
+<<<<<<< HEAD
+There are 2495 vending machines, of which 38% (959) are small and 62% (1536) are large vending machines.
+More than half of the vending machines are located close to transportation, while only about 14% are located close to a petrol station. 
+=======
 There are 2495 vending machines, wheras 38% (959) of them are small and 62% (1536) are large vending machines.
-More than half of the vending machines are plased close to transportation,while only about 14% are places close to a petrol station. 
+More than half of the vending machines are plased close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
+>>>>>>> bcb5a1f6b78267dc73939e223b75a13f7f0e4b39
 
 ### Products 
 ```{r}
-product_names <- unique(product_data$product_name)
-number_of_products <- uniqueN(product_data$product_name)
-product_dist <- product_data[,.(.N, mean_price = round(mean(price),2)), by=category][order(-N)]
-product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),2)), by = .(category, type_drink_snack)][order(-mean_price)]
-number_of_products; product_dist; product_type_dist
+product_dist <- product_data[,.(.N, mean_price = round(mean(price),4)), by=category][order(-N)]
+product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),4)), by = .(category, type_drink_snack)][order(-mean_price)]
+product_dist; product_type_dist
 ```
+
+How many products are there
+```{r}
+uniqueN(product_data$product_name)
+```
+Which category has the highest number of products?
+```{r}
+product_data[ , .(.N), by = category][ N == max(N)]
+```
+Highest and lowest price in category
+```{r}
+product_data[ ,.(avg_price= mean(price)), by = category][avg_price == min(avg_price) | avg_price == max(avg_price)]
+```
+Drinks with the highest and lowest average price
+```{r}
+product_data[ type_drink_snack == 'drink' ,.(avg_price= mean(price)), 
+                                       by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
+```
+Snacks with the highest and lowest average price
+```{r}
+product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)), 
+                                       by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
+```
+
 There are in total 63 different products, classified as drink or snack, which are distributed in 8 different categories.
-Carbonates and energy drinks is the category with most products, followed by chocolate based snacks with 11 different products. 
-The milk based drinks has the highest average price of 3.43, while sugar candy snack has the lowest average price.
+'Carbonates and energy drinks' is the category with the most (13) products, followed by 'Chocolate based' snacks with 11 different products. 
+The 'Milk based' drinks have the highest average price of 3.43, while 'Sugar candy' snacks have the lowest average price of 2.30.
 
 ### Transactional data
-```{r}
-library("openair")
-transaction_data$date <- as.Date(transaction_data$date)
-transactions_march <- selectByDate(transaction_data, year = 2017, month = 3)
-```
+In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more exrene observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
 
+From the distibution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
 
 ```{r}
-### WHY DOES WE loose one row(machine)???
-transactions_march_dist <- transactions_march[, .(.N), by=.(machine, date)]
-
-uniqueN(transactions_march_dist$machine)
-uniqueN(transactions_march_dist$date)
-
-sales_dist <- transactions_march_dist[,.(mean_sales = mean(N)), by=machine]
-sales_dist <- merge(sales_dist, machine_data[,.(machine, small_machine)], by.x = "machine", by.y= "machine")
-sales_dist
-
-sales_dist2 <- sales_dist[,.(avg_sales = mean(mean_sales)), by = small_machine]
-sales_dist2
-plot(sales_dist)
-boxplot(sales_dist$mean_sales)
+march <- merged_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
+march_avg_size <- march[,.(mean_items=mean(N)),by=.(machine, small_machine)]
+march_avg<-march_avg_size[,.(avg_daily_items=sum(mean_items)/uniqueN(machine)),by=small_machine]
+march_avg$type <- ifelse(march_avg$small_machine == 1, 
+                            yes = "small", no = "large")
+march_avg[,.(type, avg_daily_items)]
 ```
-
 ```{r}
-daily_items_sold <- transaction_data[, .(.N), by=.(machine, date)]
-summary(daily_items_sold)
-
+boxplot(march_avg_size$mean_items,
+        march_avg_size[small_machine == 1,]$mean_items, 
+        march_avg_size[small_machine == 0,]$mean_items, 
+        main = "Daily Sales Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "daily sales")
 ```
+
 
 ## Question 2: Plot interpretation 
-![Caption](Q2.JPG)
+![](Q2.JPG)
 
 a. Is there a general trend in the number of snacks and drinks as the months progress from January to April? Is it the same for snacks and drinks? Why do you think that might be so?
 
-* drinks: an linear increasing trend (ANOVA?)
+<<<<<<< HEAD
+<<<<<<< HEAD
+* drinks: a linear increasing trend (ANOVA?)
+=======
+* drinks: an linear increasing trend (ANOVA?) - increasing with temprature?
+>>>>>>> 5f51a51f0e9d04db7218619fd1298e86dad9923d
 * snack: flat/no trend
 
+The reason for the growth in drinks sold between January and April could be related to the external factor of the weather. While people presumably tend to buy warm drinks when the temperature is comparably low outside, the vending machines cannot provide the customers with the warm drinks they want. As the temperature rises over time, people probably tend to buy more cold drinks again, which could explain the rising trend in drinks sold by the vending machines from January to April. For snacks on the other hand, the influence of this external factor does not apply, as the consumption of snacks do not rely as heavily on the weather as drinks do.
 
 ```{r}
 daily_items_sold <- merged_data[, .(.N), by=.(type_drink_snack, date)]
 daily_items_sold <- merged_data[, .(.N), by= date]
+=======
+* drinks: an linear increasing trend increasing with temprature?
+* snack: no trend
 
-daily_items_sold
+```{r drinks trend}
+drink_trend <- merged_data[type_drink_snack == 'drink',.(avg_daily=.N/uniqueN(machine)), by=(date)][order(date)]
+#plot(drink_trend$date,drink_trend$avg_daily,type = "l", main = 'Drinks per Machine per Day')
+
+trendline(
+  drink_trend$date,
+  drink_trend$avg_daily,
+  model = "line2P",
+  Pvalue.corrected = TRUE,
+  linecolor = "blue",
+  lty = 1,
+  lwd = 1,
+  show.equation = TRUE,
+  show.Rsquare = TRUE,
+  show.pvalue = TRUE)
+```
+>>>>>>> bcb5a1f6b78267dc73939e223b75a13f7f0e4b39
+
+```{r snack trend}
+snack_trend <- merged_data[type_drink_snack == 'snack',.(avg_daily=.N/uniqueN(machine)), by=.(date)][order(date)]
+#plot(snack_trend$date,snack_trend$avg_daily,type = "l", main = 'Snacks per Machine per Day')
+
+trendline(
+  snack_trend$date,
+  snack_trend$avg_daily,
+  model = "line2P",
+  Pvalue.corrected = TRUE,
+  linecolor = "blue",
+  lty = 1,
+  lwd = 1,
+  show.equation = TRUE,
+  show.Rsquare = TRUE,
+  show.pvalue = TRUE)
 ```
 
 
 b. Is there shorter time period trend as well? Is it the same for snacks and drinks? What do you think might be the cause?
-* weekly seasonality (spikes on weekends?)
+* weekly seasonality for both snack and drinks
+* Drinks: weekend average of 4.57 vs. weekday average of 3.39
+* Snacks: weekend average of 7.25 vs. weekday average of 5.61
+
+The vending machines are more used in the weekends than in the weekdays. A potential explanation of this could be that the people are travelling more during the weekends and thus the vending machine close to transporation means are more used. 
+
+
+```{r}
+drink_trend[,day:=weekdays(date)]
+drink_dist <- drink_trend[ , .(daily_drink = mean(avg_daily)) , by=day]
+drink_dist <- drink_dist %>% add_row(day = "Weekend", daily_drink =mean(drink_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+drink_dist <- drink_dist %>% add_row(day = "Weekdays", daily_drink =mean(drink_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+drink_dist$daily_drink <- round(drink_dist$daily_drink, 2)
+
+snack_trend[,day:=weekdays(date)]
+snack_dist <- snack_trend[ , .(daily_snack = mean(avg_daily)) , by=day]
+snack_dist <- snack_dist %>% add_row(day = "Weekend", daily_snack =mean(snack_trend[day=="Sunday"|day=="Saturday"]$avg_daily)) 
+snack_dist <- snack_dist %>% add_row(day = "Weekdays", daily_snack =mean(snack_trend[!(day=="Sunday"|day=="Saturday"),]$avg_daily))
+snack_dist$daily_snack <- round(snack_dist$daily_snack, 2)
+
+merge(snack_dist, drink_dist)
+```
 
 
 ### Question 3: Distribution of income 
+#### Outliers
+There are some extreme values in the distribution of income across, which could be interpreted as outliers.This means that there are some machines that generate much more income than others, and could be a result of a strategically good location of vending machines. These instances seem to be distributed across small and big machines
+```{r}
+income_small <- machine_data[small_machine==1, income_average]
+income_big <- machine_data[small_machine==0, income_average]
+boxplot(machine_data$income_average, income_small, income_big,
+        main = "Income Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "income average")
+
+summary(machine_data$income_average); summary(income_big) ; summary(income_small)
+
+```
 
 ```{r}
-summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
-hist(merged_data$income_average,
-  xlab = "income average",
-  main = "Histogram of income",
-  breaks = 10)
+## potential solution log transformation
+## Log transformation would include these outliers, but make the impact of them much smaller 
+boxplot(log(machine_data$income_average), log(income_small), log(income_big),
+        main = "Income Distribution",
+        names = c("all machines", "small machines", "big machines"),
+        ylab = "income average")
 
-#Removing outliers with IQR Method
-Q <- quantile(merged_data$income_average, probs=c(.25, .75), na.rm = TRUE)
-iqr <- IQR(merged_data$income_average, na.rm= TRUE)
-
-up <-  Q[2]+1.5*iqr # Upper Range (beyond which datapoints are outliers)  
-low<- Q[1]-1.5*iqr # Lower Range
-
-merged_data_clean <- subset(merged_data, merged_data$income_average > (Q[1] - 1.5*iqr) & merged_data$income_average < (Q[2]+1.5*iqr))
-
+summary(log(machine_data$income_average)); summary(log(income_big)) ; summary(log(income_small))
 ```
 
 
 ```{r}
-boxplot(machine_data$income_average)
-summary(machine_data$income_average)  ### Why do we not get the same results ?? Double check 
+summary(machine_data$income_average)  
 hist(machine_data$income_average,
   xlab = "income average",
   main = "Histogram of income",
   breaks = 10)
 
-income_small <- machine_data[small_machine==1, income_average]
-income_big <- machine_data[small_machine==0, income_average]
-summary(income_big) ; summary(income_small)
-boxplot(income_big); boxplot(income_small)
+#Removing outliers with IQR Method   
+Q <- quantile(machine_data$income_average, probs=c(.25, .75), na.rm = TRUE)
+iqr <- IQR(machine_data$income_average, na.rm= TRUE)
 
-plot(machine_data$small_machine, machine_data$income_average)
-plot(machine_data$machine, machine_data$income_average)
+up <-  Q[2]+1.5*iqr # Upper Range (beyond which datapoints are outliers)  
+low<- Q[1]-1.5*iqr # Lower Range
+
+machine_data_clean <- subset(machine_data, machine_data$income_average > (Q[1] - 1.5*iqr) & machine_data$income_average < (Q[2]+1.5*iqr))
+
 ```
 
+
+
+
+#### NA's
+There are 182 NA values in the income average feature. Out of theses 182 observations, 104 of them are also NA in the train average daily passengers and train average day passengers.
+* no machines that have more than 1 NA
+* 59% of NA's are big machines, 41% are small machines
+* 50% of NA's are located close to transportation
+
+##################### HOW SHOULD WE Account for daily sales as he write in the hint?
 ```{r}
 income_NA <- machine_data[is.na(income_average), ]
 uniqueN(income_NA)
-summary(income_NA)
+
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by=location_type]
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= small_machine]
+income_NA[ ,.(N = .N, porportion = .N/uniqueN(income_NA)) , by= machine][order(-N)]
 ```
-
-
-### Question 4: Boxplot interpretation 
-![Boxplot](Q4.JPG)
 ```{r}
-boxplot(machine_data$num_hotels)
-summary(machine_data$num_hotels)
+#1: delete missing values
+is.na(machine_data$income_average)
+na.omit(machine_data$income_average)
+#2: substitute missing values with the average value
+machine_data$income_average[machine_data$income_average==mean(machine_data$income_average)]<-NA
+#3: substitute missing values with mean of small machine and categories 
 ```
-
 ```{r}
 arcvi_descriptive(machine_data$small_machine, machine_data$income_average)
 arcvi_descriptive(merged_data$income_average, merged_data$small_machine)
@@ -171,9 +274,20 @@ arcvi_descriptive(model_data$income_average, model_data$daily_sales)
 ```
 
 
+### Question 4: Boxplot interpretation 
+![Boxplot](Q4.JPG)
 According to this boxplot the median number of hotels in the machine area is 0. This means that half or more of the observations is zero, this more than half of the vending machines does not have an hotel in the nearby area. The median is also in this case the same as the minimum and 1st quantile. 
 The 3rd quantile is one, while the mean of the observations is 2. This is due to that most of the vending machines not have hotels nearby, while about half (4th quantile) of those who have hotels nearby seems to have many hotels, with the maximum of 79 hotels nearby.
 --> if we want to use this feature later on - we should consider making a dummy of hotels nearby and not, then work on those with hotels nearby.
+
+```{r}
+boxplot(machine_data$num_hotels)
+summary(machine_data$num_hotels)
+```
+
+
+
+
 
 ### Question 5: Location score
 In this exercise we will build a location score that tells us what’s the average daily items per machine depending on the location it is placed. This model could be used to 
@@ -184,7 +298,6 @@ b) Construct a benchmark for each machine: how much should it sell according to 
 machine_data[,petrol_station:=ifelse(is.na(train_AvgDailyPassengers),1,0)]
 #### we have a lot of NAs should we do something about them?
 
-
 daily_items_sold <- merged_data[, .(.N), by= .(machine, date)]
 daily_items_sold
 daily_items_sold <- daily_items_sold[,.(daily_sales = mean(N)), by=machine]
@@ -192,6 +305,12 @@ daily_items_sold
 
 model_data <- merge(machine_data, daily_items_sold)
 ```
+
+```{r}
+summary(model_data)
+### WHAT TO DO WITH NA's??
+```
+
 
 #### Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
@@ -210,7 +329,6 @@ Build another linear model but this time instead of using the variables
 “total_number_of_routes_600 use the log of that variable in base 10 calling it
 “log_transport”. Does this new variable show statistical significance?
 ```{r}
-### SHOULD WE DO ANYTHING WITH THE NAs??
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
 colnames(model_data)
@@ -219,11 +337,11 @@ colnames(model_data)
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
      + num_hotels_45 + petrol_station + num_vendex_nearby_300, 
-    data = model_data)
+        data = model_data)
 summary(m1)
 ```
 #### train model using cross-validation
-```{r}
+```{r, eval = FALSE}
 # 5 fold : Train-test split
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
@@ -260,12 +378,12 @@ summary(final_model)
 ```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
-```{r}
+```{r , eval = FALSE}
 final_model$coefficients["small_machine"]
 ```
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
-```{r}
+```{r ,eval = FALSE}
 final_model$coefficients["num_vendex_nearby_300"]
 ```
 
@@ -273,7 +391,7 @@ final_model$coefficients["num_vendex_nearby_300"]
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the
 top20%/bottom20% ratio?
 
-```{r}
+```{r , eval = FALSE}
 hist(final_model$fitted.values, breaks = 40)
 
 
@@ -287,9 +405,24 @@ hist(final_model$fitted.values, breaks = 40)
 
 #### Choice
 Given the following 2 locations for a big machine:
-i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no
-nearby machines
-ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes
-nearby, 3 nearby Vendex machines
-Which location would you choose and why?
+i. Supermarket entrance, 2 nearby hotels of 4 stars, 20 transport routes, no nearby machines
+ii. Transport station, no nearby hotels of 4 or 5 stars, 10 transport routes nearby, 3 nearby Vendex machines Which location would you choose and why?
+
+
+
+
+
+transactions = transactions[, .N, list(date, machine)]  
+data = merge(machines, transactions, all=TRUE)
+data[, train_AvgDailyPassengers := ifelse(is.na(train_AvgDailyPassengers),1,0), ]
+data[, income_average:= ifelse(is.na(income_average),0,income_average)]
+data[, total_number_of_routes_600:= ifelse(is.na(total_number_of_routes_600),0,total_number_of_routes_600)]
+m0 = glm(N ~ small_machine + income_average + total_number_of_routes_600 + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
+#a. Do all variables show statistical significance? Which ones doesn’t? How do you know? 
+summary(m0)
+#b. Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance? 
+data[, log_transport:= log(total_number_of_routes_600, base= 10)]
+data = data[!is.infinite(log_transport)]
+m1 = glm(N ~ small_machine + income_average + log_transport + num_hotels_45 + train_AvgDailyPassengers + num_vendex_nearby_300, data= data)
+summary(m1)
 
