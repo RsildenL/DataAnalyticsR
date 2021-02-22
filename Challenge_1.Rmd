@@ -25,13 +25,20 @@ transaction_data <- fread("Data/transactional_data.csv")
 transaction_data$date <- as.Date(transaction_data$date)
 merged_data <- merge(transaction_data, product_data, by.x = "product_name", by.y ="product_name")
 merged_data <- merge(merged_data, machine_data, by= "machine")
-
-
 ```
 
 
 ## Question 1: General overview of the data
 ### Machines
+1a) How many machines are there? 
+There are 2495 vending machines in total.
+
+1b) What percentage of them are small? 
+Out of those 38% (959) are small and 62% (1536) are large vending machines.
+
+1c) How do they distribute in terms of location type i.e. transport, petrol station?
+More than half of the vending machines are placed close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
+
 ```{r}
 number_of_machines <- uniqueN(machine_data$machine)
 machine_dist <- machine_data[,.(.N), by=small_machine]
@@ -48,23 +55,12 @@ machine_dist_by_location <- machine_data[,.(.N),by = location_type]
 machine_dist_by_location [,percent := round(N/number_of_machines,4)]
 machine_dist_by_location
 ```
-1a) How many machines are there? 
-There are 2495 vending machines in total.
-1b) What percentage of them are small? 
-Out of those 38% (959) are small and 62% (1536) are large vending machines.
-1c) How do they distribute in terms of location type i.e. transport, petrol station?
-More than half of the vending machines are placed close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
 
 
 ### Products 
-```{r}
-product_dist <- product_data[,.(.N, mean_price = round(mean(price),4)), by=category][order(-N)]
-product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),4)), by = .(category, type_drink_snack)][order(-mean_price)]
-product_dist; product_type_dist
-```
-
 1d) How many products are there? Which category has the highest number of products?
-There are 63 different types of products
+
+There are 63 different types of products.
 Carbonates and energy drinks have highest number of products (13 products)
 ```{r}
 uniqueN(product_data$product_name)
@@ -75,28 +71,23 @@ product_data[ , .(.N), by = category][ N == max(N)]
 
 1e) Which category has the highest and lowest average price? And within snacks or
 drinks? 
+
 Category named "Milk based" has highest average price whereas category "Sugar Candy" has lowest average price overall
 Within category "Drinks", highest average price is of "Milk based" (3.4250) and lowest is of "Juice, tea and smoothies" (2.8625) 
 Within category "snack", highest average price is of "Salty" (2.725) and lowest is of "Sugar Candy" (2.300)
 
-How many products are there?
-```{r}
-uniqueN(product_data$product_name)
-```
-Which category has the highest number of products?
-```{r}
-product_data[ , .(.N), by = category][ N == max(N)]
-```
 
 Highest and lowest price in category
 ```{r}
 product_data[ ,.(avg_price= mean(price)), by = category][avg_price == min(avg_price) | avg_price == max(avg_price)]
 ```
+
 Drinks with the highest and lowest average price
 ```{r}
 product_data[ type_drink_snack == 'drink' ,.(avg_price= mean(price)), 
                                        by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
 ```
+
 Snacks with the highest and lowest average price
 ```{r}
 product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)), 
@@ -107,8 +98,14 @@ There are in total 63 different products, classified as drink or snack, which ar
 Carbonates and energy drinks is the category with most products, followed by chocolate based snacks with 11 different products. 
 The milk based drinks has the highest average price of 3.43, while sugar candy snack has the lowest average price.
 
+```{r}
+product_dist <- product_data[,.(.N, mean_price = round(mean(price),4)), by=category][order(-N)]
+product_type_dist <- product_data[,  .(.N, mean_price = round(mean(price),4)), by = .(category, type_drink_snack)][order(-mean_price)]
+product_dist; product_type_dist
+```
+
 ### Transactional data
-In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more exrene observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
+In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
 
 From the distibution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
 
@@ -134,9 +131,7 @@ product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)),
                                        by = list(category, type_drink_snack)][avg_price == min(avg_price) | avg_price == max(avg_price)]
 ```
 
-There are in total 63 different products, classified as drink or snack, which are distributed in 8 different categories.
-Carbonates and energy drinks is the category with most products, followed by chocolate based snacks with 11 different products. 
-The milk based drinks has the highest average price of 3.43, while sugar candy snack has the lowest average price.
+
 
 ### Transactional data
 In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
