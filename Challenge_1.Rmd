@@ -136,13 +136,6 @@ product_data[ type_drink_snack == 'snack' ,.(avg_price= mean(price)),
 ```
 
 
-
-### Transactional data
-In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
-
-From the distribution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically well placed then others. Another reason could be that the sortiment is better.
-
-
 ## Question 2: Plot interpretation 
 ![](Q2.JPG)
 
