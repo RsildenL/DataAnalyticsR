@@ -369,6 +369,7 @@ model_data$income_average <- na_mean$income_average
 summary(model_data)
 ```
 Linear regression does not work well with missing values, in this dataset we have missing values for the total number of routes 600 and for income average. 
+
 * For the mimssing values in the total number of routes 600, with the median of the number of routes.
 * For the missing values in the income average we replace them with the categorical mean of the instance based on machine size and location type, as described as option 4 in question 3. 
 
@@ -394,6 +395,7 @@ summary(model_data$log_transport)
 ```
 
 Create new model, including all variables but use log transport instead.
+
 * All features are significant, including the number of vendex machines nearby  
 ```{r}
 m1 <- glm(daily_sales ~ small_machine + income_average + log_transport
@@ -406,6 +408,7 @@ summary(m1)
 next we train the model using a 80/20 train/test split of the dataset and a 5-fold cross validation.
 ```{r }
 # 5 fold : Train-test split
+set.seed(1)
 cfolds <- 5
 index <- sample(1:cfolds, nrow(model_data), replace = TRUE)
 
@@ -425,7 +428,7 @@ summary(final_model)
 ### Small machines
 How many daily items less do small machines sell all other factors remaining equal?
 
-After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.608906 fewer units per day than big machines.
+After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.667252 fewer units per day than big machines.
 ```{r }
 final_model$coefficients["small_machine"]
 ```
@@ -433,7 +436,7 @@ final_model$coefficients["small_machine"]
 ### Number of machines nearby
 What’s effect on machine sales does having other nearby machines all other factors remaining equal?
 
-With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1055621 per day.
+With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1229905 per day.
 ```{r }
 final_model$coefficients["num_vendex_nearby_300"]
 ```
@@ -499,5 +502,5 @@ option1
 option2
 
 ```
-Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 5.864236 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
+Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.16578 instead of 5.978487 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
 
