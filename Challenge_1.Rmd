@@ -15,6 +15,7 @@ library(tidyverse)
 library(pROC)
 library(openair)
 library(basicTrendline)
+library(kableExtra)
 ```
 
 Reading the data
@@ -333,7 +334,7 @@ dim(na_mean)
 
 
 ### Question 4: Boxplot interpretation 
-![Boxplot](Q4.JPG)
+![](Q4.JPG)
 
 According to this boxplot the median number of hotels in the machine area is 0. This means that more often than not machines do not have any hotels in the area. In this cases, the median also coincides with both of the minimum and the 1st quantile. 
 The 3rd quantile is 1, while the mean of the observations is 2. This is due to the fact that most of the vending machines do not have any hotels nearby, while about half of those which have hotels nearby (i.e. the 4th quantile) seem to have a relatively high number of hotels nearby (the maximum is 79 hotels nearby).
@@ -451,6 +452,8 @@ Bottom 20% predictions
 ```{r}
 comparison[(0.8*length(comparison$predictions)):(length(comparison$predictions))]
 ```
+
+
 the real daily sales of the top 20% machines according to model
 ```{r}
 top20 <- mean(comparison$ratio[1:(0.2*length(comparison))])
@@ -485,5 +488,5 @@ option1
 option2
 
 ```
-Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 6.191234 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
+Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 5.864236 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
 
