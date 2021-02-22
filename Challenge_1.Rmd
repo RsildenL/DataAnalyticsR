@@ -47,7 +47,7 @@ Out of those 38% (959) are small and 62% (1536) are large vending machines.
 
 1c) How do they distribute in terms of location type i.e. transport, petrol station?
 
-More than half of the vending machines are placed close to transportation,while only about 14% are places close to a petrol station, and there is one vending machine that is not classified regarding location type.
+More than half of the vending machines are placed close to transportation, while only about 14% are placed close to a petrol station. Also there is one vending machine that is not classified regarding location type.
 
 ```{r}
 number_of_machines <- uniqueN(machine_data$machine)
@@ -115,9 +115,9 @@ product_dist; product_type_dist
 ```
 
 ### Transactional data
-In march are 2494 vending machines selling products, hereof 1536 big machines and 958 small machines. The big machines have a higher average of sold products per machine per day. The higher daily sales of the big machines is a consequence of more extreme observations, while the maximum average daily sales among the small machines are 30, do several of the big machines have average daily sales higher than this with a maximum of almost 60. 
+In March, there are 2494 vending machines selling products, of which 1536 are big machines and 958 are small machines. The big machines have a higher average of products sold per machine per day. The higher daily sales of the big machines are a result of more extreme observations. While the maximum average daily sales for the small machines are 30, some of the large vending machines have a higher average daily turnover with a maximum of almost 60. 
 
-From the distribution of the daily sales it is clear that some machines have significantly more sales than others. This could indicate that some machines are more strategically placed than others. Another reason could be that the assortment is better.
+From the distribution of the daily sales, it is clear that some machines have significantly more sales than others. This could indicate that some machines are strategically better placed than others. Another reason could be that the respective assortment is better.
 
 ```{r}
 march <- merged_data[year(date)=='2017' & month(date)=='3',.(.N), by=.(date,machine,small_machine)]
