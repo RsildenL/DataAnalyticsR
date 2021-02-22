@@ -366,15 +366,15 @@ model_data$total_number_of_routes_600[is.na(model_data$total_number_of_routes_60
 model_data$income_average <- na_mean$income_average
 summary(model_data)
 ```
-Linear regression does not work well with missing values, in this dataset we have missing values for the total number of routes 600 and for income average. 
+Linear regression does not work well with missing values. In this data set we have missing values for the total number of routes 600 and for the income average. 
 
-* For the mimssing values in the total number of routes 600, with the median of the number of routes.
-* For the missing values in the income average we replace them with the categorical mean of the instance based on machine size and location type, as described as option 4 in question 3. 
+* For the missing values in the total number of routes 600, with the median of the number of routes.
+* For the missing values in the income average, we replace them with the categorical mean of the instance based on machine size and location type, as described as option 4 in question 3. 
 
 ### Significant variables
 Do all variables show statistical significance? Which ones doesn’t? How do you know?
 
-By checking the p-values of the coefficients, we can see that the total number of routes and number of vendex machines nearby is insignificant features. 
+By checking the p-values of the coefficients, we can see that the total number of routes and number of vendex machines nearby are insignificant features. 
 ```{r}
 m0 <- glm( daily_sales ~ small_machine + income_average + total_number_of_routes_600
      + num_hotels_45 + not_trainstation + num_vendex_nearby_300, 
@@ -385,14 +385,14 @@ summary(m0)
 ### Linear model 
 Build another linear model but this time instead of using the variables “total_number_of_routes_600 use the log of that variable in base 10 calling it “log_transport”. Does this new variable show statistical significance?
 
-By log transforming the total number of routes 600, the values becomes less extreme. This can be shown in the summary below of the original feature and the log tranformed feature, respectively 
+Log transforming the total number of routes 600 makes the values less extreme. This is shown in the summary below of the original feature and the log transformed feature, respectively.
 ```{r}
 summary(model_data$total_number_of_routes_600)
 model_data[,log_transport:= log(total_number_of_routes_600)]
 summary(model_data$log_transport)
 ```
 
-Create new model, including all variables but use log transport instead.
+Create a new model that contains all variables but use the log transport instead.
 
 * All features are significant, including the number of vendex machines nearby  
 ```{r}
@@ -403,7 +403,7 @@ summary(m1)
 ```
 
 ### Cross-validation
-next we train the model using a 80/20 train/test split of the dataset and a 5-fold cross validation.
+Next, we train the model using a 80/20 train/test split of the data set and a 5-fold cross validation.
 ```{r }
 # 5 fold : Train-test split
 set.seed(1)
@@ -466,17 +466,17 @@ Bottom 20% predictions
 comparison[(0.8*length(comparison$predictions)):(length(comparison$predictions))]
 ```
 
-the real daily sales of the top 20% machines according to model
+The real daily sales of the top 20% machines according to model
 ```{r}
 top20 <- mean(comparison$ratio[1:(0.2*length(comparison))])
 top20
 ```
-the real daily sales of the bottom20% machines according to model
+The real daily sales of the bottom20% machines according to model
 ```{r}
 bottom20 <- mean(comparison$ratio[(0.8*length(comparison)):(length(comparison))])
 bottom20
 ```
-the top20%/bottom20% ratio
+The top20%/bottom20% ratio
 ```{r}
 top20/bottom20
 ```
@@ -500,5 +500,4 @@ option1
 option2
 
 ```
-Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.16578 instead of 5.978487 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
-
+Given the two options for locations, taking into account their respective factors, we would choose the first option because we predict higher sales for that location (10.16578 instead of 5.978487 in the daily sales variable), assuming that both locations cost us the same to acquire and maintain.
