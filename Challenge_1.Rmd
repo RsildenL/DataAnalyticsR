@@ -417,16 +417,17 @@ summary(final_model)
 ```
 
 #### How many daily items less do small machines sell all other factors remaining equal?
+After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.608906 fewer units per day than big machines.
 ```{r }
 final_model$coefficients["small_machine"]
 ```
-After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.608906 fewer units per day than big machines.
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
+With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1055621 per day.
 ```{r }
 final_model$coefficients["num_vendex_nearby_300"]
 ```
-With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1055621 per day.
+
 
 #### Top and bottom ratio
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the top20%/bottom20% ratio?
