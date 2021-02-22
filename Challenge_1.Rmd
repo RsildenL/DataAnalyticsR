@@ -421,11 +421,13 @@ summary(final_model)
 ```{r }
 final_model$coefficients["small_machine"]
 ```
+After removing statistically non-significant variables from our model and assuming all other factors remaining equal, a machine that is small sells on average 1.608906 fewer units per day than big machines.
 
 #### What’s effect on machine sales does having other nearby machines all other factors remaining equal?
 ```{r }
 final_model$coefficients["num_vendex_nearby_300"]
 ```
+With other machines nearby and assuming all other factors remain the same, machine sales decrease by an average of 0.1055621 per day.
 
 #### Top and bottom ratio
 Ranking all machines according to the final_model, what are the real daily sales of the top20% machines with respect to your model prediction? And the real daily sales of the bottom20% machines according to your model? What’s the top20%/bottom20% ratio?
@@ -466,7 +468,7 @@ the top20%/bottom20% ratio
 ```{r}
 top20/bottom20
 ```
-
+The data tables above show the expected sales for the top 20% machines and for the bottom 20% machines according to our model predictions. The top20%/bottom20% ratio is 2.296307, which means that on average the top 20% machines are expected to sell more than twice as much per day compared to the bottom 20% machines.
 
 #### Choice
 Given the following 2 locations for a big machine:
@@ -486,5 +488,5 @@ option1
 option2
 
 ```
-
+Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 6.191234 in daily sales variable).
 
