@@ -482,5 +482,5 @@ option1
 option2
 
 ```
-Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 6.191234 in daily sales variable).
+Given the two options for locations taking into account the factors involved in each, we would choose the first option because we predict higher sales for this location (10.21088 instead of 6.191234 in daily sales variable), assuming that both locations cost us the same to acquire and maintain.
 
