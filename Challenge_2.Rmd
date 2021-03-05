@@ -24,6 +24,13 @@ Predicting Machine Failure
 # Creating the relevant variable for the model
 
 ## 1. Merging datasets 
+Merge the transactional dataset with the machine failures data set setting failure variable to 0 when no failure is recorded
+Hint: The syntax to do merges is merge(dt1,dt2, by=c(‘field1’,’field2’),all.x=T) and to set to 0 try dt[is.na(failure),failure:=0]
+
+```{r}
+
+```
+
 
 ## 2. Create "last_vend" variable
 
