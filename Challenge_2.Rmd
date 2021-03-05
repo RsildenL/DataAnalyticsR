@@ -76,7 +76,7 @@ machine_daily_average
 ```
 
 ```{r}
-merged_data$machine_daily_average <- merge(merged_data, machine_daily_average, 
+merged_data$daily_sales_machine <- merge(merged_data, machine_daily_average, 
                                            by = "machine", all = TRUE)$avg_daily_sales
 head(merged_data)
 ```
@@ -86,9 +86,9 @@ head(merged_data)
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours /(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
 
 ```{r}
-
+merged_data$delta <- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)),]
+head(merged_data)    
 ```
-
 
 
 # Creating the model 
