@@ -66,9 +66,12 @@ summary(merged_data$deltahours)
 
 
 ## 4. Create auxiliary table calles "machine_daily_average"
-Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
+Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
+Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
+machine_daily_average
 
+machine_data[order(machine),]
 ```
 
 
