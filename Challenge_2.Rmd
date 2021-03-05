@@ -65,18 +65,30 @@ summary(merged_data$deltahours)
 
 
 
-## 4. Create auxiliary table calles "machine_daily_average"
+## 4. Create auxiliary table called "machine_daily_average"
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
 Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
-machine_daily_average
 
-machine_data[order(machine),]
+daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
+machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
+machine_daily_average
+```
+
+```{r}
+merged_data$machine_daily_average <- merge(merged_data, machine_daily_average, 
+                                           by = "machine", all = TRUE)$avg_daily_sales
+head(merged_data)
 ```
 
 
-
 ## 5. Create "delta" variable 
+Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours /(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
+
+```{r}
+
+```
+
 
 
 # Creating the model 
