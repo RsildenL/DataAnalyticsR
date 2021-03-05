@@ -17,26 +17,61 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(data.table)
 ```
 
 Predicting Machine Failure
 
 # Creating the relevant variable for the model
+```{r Read the datafiles, cache = TRUE}
+machine_data <- fread("Data/machine_data.csv")
+product_data <- fread("Data/product_data.csv")
+transaction_data <- fread("Data/transactional_data.csv")
+transaction_data$date <- as.Date(transaction_data$date)
+machine_failures <- fread("Data/machine_failures.csv")
+```
+
 
 ## 1. Merging datasets 
-Merge the transactional dataset with the machine failures data set setting failure variable to 0 when no failure is recorded
-Hint: The syntax to do merges is merge(dt1,dt2, by=c(‘field1’,’field2’),all.x=T) and to set to 0 try dt[is.na(failure),failure:=0]
+Merge the transactional dataset with the machine failures data set setting failure variable to 0 when no failure is recorded.
 
+```{r merging data}
+merged_data <- merge(transaction_data, machine_failures, 
+                     by = c("machine", "column", "timestamp"), 
+                     all.x = TRUE)
+
+merged_data[is.na(failure), failure :=0]
+summary(merged_data)
+```
+Merging the two datasets results in a 1,840,477 observations of 5 features, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise.
+
+## 2. Create "last_vend" variable
+In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
+Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
+```{r last_vend}
+## Double check, not sure if the last vend is correct 
+merged_data$last_vend = shift(merged_data[order(machine, date)]$timestamp, n = -1 )
+merged_data[order(machine, date)]
+```
+
+
+## 3. Create "deltahours" variable
+Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale
+```{r deltahours}
+merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
+summary(merged_data$deltahours)
+```
+
+
+
+## 4. Create auxiliary table calles "machine_daily_average"
+Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
 
 ```
 
 
-## 2. Create "last_vend" variable
-
-## 3. Create "deltahours" variable
-
-## 4. Create auxiliary table calles "machine_daily_average"
 
 ## 5. Create "delta" variable 
 
