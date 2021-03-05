@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(data.table)
 library(MLmetrics)
+library(caret)
 ```
 
 Predicting Machine Failure
@@ -108,17 +109,20 @@ test <- merged_data[index == 2, ]
 
 Logistic regression: 
 ```{r}
-m <- glm(failure ~ delta,  data = train)
+m <- glm(failure ~ delta,  data = train, family = "binomial")
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
+
 ```
 
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
 ```{r}
+AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
 AUC(m_predictions, test$failure)
 ```
+
 
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
