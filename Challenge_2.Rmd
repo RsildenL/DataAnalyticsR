@@ -19,14 +19,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 library(data.table)
+library(MLmetrics)
 ```
 
 Predicting Machine Failure
 
 # Creating the relevant variable for the model
 ```{r Read the datafiles, cache = TRUE}
-machine_data <- fread("Data/machine_data.csv")
-product_data <- fread("Data/product_data.csv")
+#machine_data <- fread("Data/machine_data.csv")
+#product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
 transaction_data$date <- as.Date(transaction_data$date)
 machine_failures <- fread("Data/machine_failures.csv")
@@ -94,10 +95,37 @@ head(merged_data)
 # Creating the model 
 
 ## 6. Linear logistic regression 
+Select 30% of the machines in the transactional data for testing and 70% of the machines for training and train a linear logistic regression model called “m” to predict whether a machine has a failure as a function of variable delta. What is the value of the intercept and the coefficient accompanying variable delta?
+
+Test train split: 
+```{r}
+set.seed(12)
+index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
+train <- merged_data[index == 1, ]
+test <- merged_data[index == 2, ]
+```
+
+
+Logistic regression: 
+```{r}
+m <- glm(failure ~ delta,  data = train)
+m_predictions <- predict(m, newdata = test, type = "response")
+summary(m)$coefficients
+```
+
 
 ### a) AUC 
+What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
+```{r}
+AUC(m_predictions, test$failure)
+```
 
 ### b) Plot
+Plot the function of probability of failure with respect to delta to gain intuition
+```{r}
+
+```
+
 
 ### c) Alarms 
 
