@@ -108,7 +108,7 @@ test <- merged_data[index == 2, ]
 prop.table(table(train$failure))
 prop.table(table(test$failure))
 ```
-
+** Highly inbalanced dataset (keeping similar inbalance in test and train set)
 
 Logistic regression: 
 ```{r}
