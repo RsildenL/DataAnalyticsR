@@ -104,6 +104,9 @@ set.seed(12)
 index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
 train <- merged_data[index == 1, ]
 test <- merged_data[index == 2, ]
+
+prop.table(table(train$failure))
+prop.table(table(test$failure))
 ```
 
 
