@@ -53,10 +53,13 @@ Merging the two datasets results in a 1,840,477 observations of 5 features, whic
 ## 2. Create "last_vend" variable
 In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
 Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
+KARMAN-Order(machine, timestamp) instead of (machine, date)
+KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to delete every first row of each machine]
 ```{r last_vend}
 
-merged_data <- merged_data[order(machine, date)]
-merged_data$last_vend <- shift(merged_data$timestamp, n = -1 )
+merged_data <- merged_data[order(machine, timestamp)]
+merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )
+merged_data<- merged_data[-1,]
 
 ```
 
@@ -65,7 +68,7 @@ merged_data$last_vend <- shift(merged_data$timestamp, n = -1 )
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale
 ```{r deltahours}
 ## there will be some weird diffhours btw. the machines (include a by/if function?)
-merged_data$deltahours <- difftime(merged_data$last_vend, merged_data$timestamp, units = "hours")
+merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
 summary(merged_data$deltahours)
 ```
 
@@ -75,7 +78,7 @@ summary(merged_data$deltahours)
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
 Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
-### take a second look at this (KARMAN)
+### take a second look at this (KARMAN) KARMAN-Looks Good :)
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 machine_daily_average
@@ -92,6 +95,7 @@ head(merged_data)
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
 
 ```{r}
+##(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
 merged_data$delta <- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)),]
 head(merged_data)    
 ```
@@ -126,8 +130,10 @@ summary(m)$coefficients
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
 ```{r}
-#### DUE TO THE SHIFT -- need to remove either first or last observation 
-AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
+#### DUE TO THE SHIFT -- need to remove either first or last observation
+##UPDATE:Removed observation, but still this problem
+AUC(m)
+#AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
 AUC(m_predictions, test$failure)
 ```
 
