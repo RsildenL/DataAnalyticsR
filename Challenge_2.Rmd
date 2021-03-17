@@ -142,9 +142,10 @@ AUC(m_predictions, test$failure)
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
 ```{r}
-range(train$delta) # should it not be between 0 and 1 since we normalized?
+range(train$delta) 
+train$delta <- as.numeric(train$delta)
 
-library(ggplot2) #Option 2
+library(ggplot2) 
 ggplot(train, aes(delta, failure)) +
 geom_point(alpha = 0.2) +
 geom_smooth(method = "glm", method.args = list(family = "binomial")) +
