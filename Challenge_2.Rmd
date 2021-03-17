@@ -116,7 +116,7 @@ test <- merged_data[index == 2, ]
 prop.table(table(train$failure))
 prop.table(table(test$failure))
 ```
-** Highly inbalanced dataset (keeping similar inbalance in test and train set)
+** Highly inbalanced dataset (keeping similar distribution in test and train set)
 
 Logistic regression: 
 ```{r}
@@ -133,6 +133,7 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 #### DUE TO THE SHIFT -- need to remove either first or last observation
 ##UPDATE:Removed observation, but still this problem
 AUC(m)
+
 #AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
 AUC(m_predictions, test$failure)
 ```
@@ -141,7 +142,13 @@ AUC(m_predictions, test$failure)
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
 ```{r}
+range(train$delta) # should it not be between 0 and 1 since we normalized?
+plot(failure~delta, data=train, col="red4")
+lines(train$delta, m_predictions, col="green4", lwd=2) #Option1 - lengths differ
 
+library(ggplot2) # Option2 - same
+ggplot(train, aes(x=m_predictions , y=train$failure)) +
+  geom_point()  +  stat_smooth(method="glm", se=FALSE, method.args = list(family=binomial)) 
 ```
 
 
