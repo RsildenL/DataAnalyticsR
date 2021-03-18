@@ -112,6 +112,10 @@ Select 30% of the machines in the transactional data for testing and 70% of the 
 
 Test train split: 
 ```{r}
+merged_data[is.na(merged_data)] <- 0
+```
+
+```{r}
 set.seed(12)
 index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
 train <- merged_data[index == 1, ]
@@ -124,10 +128,10 @@ prop.table(table(test$failure))
 
 Logistic regression: 
 ```{r}
-m <- glm(failure ~ delta,  data = train, family = "binomial")
+m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
-
+summary(m)
 ```
 
 
@@ -136,7 +140,7 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 ```{r}
 #### DUE TO THE SHIFT -- need to remove either first or last observation
 ##UPDATE:Removed observation, but still this problem
-AUC(m)
+AUC(m$fitted.values, train$failure)
 
 #AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
 AUC(m_predictions, test$failure)
