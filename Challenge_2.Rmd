@@ -45,30 +45,32 @@ merged_data <- merge(transaction_data, machine_failures,
 
 merged_data[is.na(failure), failure :=0]
 summary(merged_data)
+dim(merged_data)
 ```
-Merging the two datasets results in a 1,840,477 observations of 5 features, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise.
-
-** comment on inbalance for failure (more not failure than failure)
+Merging the two datasets results in a 1,840,477 observations of 5 features, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the date feature that we have observation from 2017-01-02 until 2017-04-01. 
 
 ## 2. Create "last_vend" variable
 In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
 Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
-KARMAN-Order(machine, timestamp) instead of (machine, date)
-KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to delete every first row of each machine]
 ```{r last_vend}
 
 merged_data <- merged_data[order(machine, timestamp)]
-merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )
-merged_data<- merged_data[-1,]
-
+#merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )
+#merged_data<- merged_data[-1,]
+merged_data[, last_vend := shift(timestamp, 1), by=machine]
 ```
+A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. 
 
+REBECCA - Solved weird stuff between machines using by = machine (fill = 0 first obs with 0's)
+KARMAN-Order(machine, timestamp) instead of (machine, date)
+KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to delete every first row of each machine]
 
 ## 3. Create "deltahours" variable
-Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale
+Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
 ```{r deltahours}
 ## there will be some weird diffhours btw. the machines (include a by/if function?)
 merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
+#merged_data[, deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
 summary(merged_data$deltahours)
 ```
 
