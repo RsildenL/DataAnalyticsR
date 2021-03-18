@@ -53,13 +53,13 @@ Merging the two datasets results in a 1,840,477 observations of 5 features, whic
 In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
 Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
 ```{r last_vend}
-
 merged_data <- merged_data[order(machine, timestamp)]
-#merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )
-#merged_data<- merged_data[-1,]
-merged_data[, last_vend := shift(timestamp, 1), by=machine]
+merged_data[, last_vend := shift(timestamp, 1), by=machine]  #Rebecca
+
+#merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )  ## Karman 
+#merged_data<- merged_data[-1,] ## Karman
 ```
-A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. 
+A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, an the last_vend is reported as NA.
 
 REBECCA - Solved weird stuff between machines using by = machine (fill = 0 first obs with 0's)
 KARMAN-Order(machine, timestamp) instead of (machine, date)
@@ -67,10 +67,12 @@ KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to dele
 
 ## 3. Create "deltahours" variable
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
-```{r deltahours}
+```{r deltahours, cache = TRUE}
 ## there will be some weird diffhours btw. the machines (include a by/if function?)
-merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
-#merged_data[, deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
+#merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
+#merged_data[!is.na(last_vend), deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
+merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, "NA", difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")), by=machine]
+
 summary(merged_data$deltahours)
 ```
 
@@ -102,6 +104,7 @@ merged_data$delta <- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)
 head(merged_data)    
 ```
 
+(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
 
 # Creating the model 
 
