@@ -163,10 +163,10 @@ labs(title = "Logistic Regression Model",
 ```
 
 ```{r}
-plot(failure ~ delta, data = merged_data)
+#plot(failure ~ delta, data = merged_data)
 
-prob  <- 1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*as.numeric(merged_data$delta))))
-curve(expr = (1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*x)))), x = merged_data$delta)
+#prob  <- 1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*as.numeric(merged_data$delta))))
+#curve(expr = (1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*x)))), x = merged_data$delta)
 
 ```
 

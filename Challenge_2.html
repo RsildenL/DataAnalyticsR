@@ -1619,43 +1619,29 @@ summary(merged_data)</code></pre>
 ##                     Mean   :0.006725  
 ##                     3rd Qu.:0.000000  
 ##                     Max.   :1.000000</code></pre>
-<p>Merging the two datasets results in a 1,840,477 observations of 5 features, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise.</p>
+<pre class="r"><code>dim(merged_data)</code></pre>
+<pre><code>## [1] 1840477       6</code></pre>
+<p>Merging the two datasets results in a 1,840,477 observations of 5 features, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the date feature that we have observation from 2017-01-02 until 2017-04-01.</p>
 </div>
 <div id="create-last_vend-variable" class="section level2">
 <h2>2. Create “last_vend” variable</h2>
 <p>In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt</p>
-<pre class="r"><code>## Double check, not sure if the last vend is correct 
-merged_data$last_vend = shift(merged_data[order(machine, date)]$timestamp, n = -1 )
-merged_data[order(machine, date)]</code></pre>
-<pre><code>##          machine column           timestamp       date
-##       1:       1     21 2017-01-02 12:20:19 2017-01-02
-##       2:       1     21 2017-01-02 13:11:15 2017-01-02
-##       3:       1     24 2017-01-02 13:13:19 2017-01-02
-##       4:       1     24 2017-01-02 13:56:16 2017-01-02
-##       5:       1     24 2017-01-02 15:22:47 2017-01-02
-##      ---                                              
-## 1840473:    2724     47 2017-04-01 20:36:03 2017-04-01
-## 1840474:    2724     52 2017-04-01 09:06:01 2017-04-01
-## 1840475:    2724     56 2017-04-01 09:05:54 2017-04-01
-## 1840476:    2724     56 2017-04-01 13:36:32 2017-04-01
-## 1840477:    2724     57 2017-04-01 12:34:00 2017-04-01
-##                             product_name failure           last_vend
-##       1: sugar_confectionary_incl_gums_3       0 2017-01-11 11:53:16
-##       2: sugar_confectionary_incl_gums_3       0 2017-01-11 13:00:36
-##       3: sugar_confectionary_incl_gums_1       0 2017-01-15 14:18:33
-##       4: sugar_confectionary_incl_gums_1       0 2017-01-15 16:40:21
-##       5: sugar_confectionary_incl_gums_1       0 2017-01-15 13:36:17
-##      ---                                                            
-## 1840473:                  fruit_juices_1       0 2017-03-29 18:53:04
-## 1840474:           sport_energy_drinks_1       0 2017-03-31 15:23:43
-## 1840475:          tea_and_coffee_based_3       0 2017-04-01 09:19:06
-## 1840476:          tea_and_coffee_based_3       0 2017-04-01 15:02:30
-## 1840477:          flavoured_carbonates_1       0 2017-04-01 09:05:54</code></pre>
+<pre class="r"><code>merged_data &lt;- merged_data[order(machine, timestamp)]
+merged_data[, last_vend := shift(timestamp, 1), by=machine]  #Rebecca
+
+#merged_data$last_vend &lt;- shift(merged_data$timestamp, n = 1 )  ## Karman 
+#merged_data&lt;- merged_data[-1,] ## Karman</code></pre>
+<p>A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, an the last_vend is reported as NA.</p>
+<p>REBECCA - Solved weird stuff between machines using by = machine (fill = 0 first obs with 0’s) KARMAN-Order(machine, timestamp) instead of (machine, date) KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to delete every first row of each machine]</p>
 </div>
 <div id="create-deltahours-variable" class="section level2">
 <h2>3. Create “deltahours” variable</h2>
-<p>Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale</p>
-<pre class="r"><code>merged_data$deltahours &lt;- difftime(merged_data$timestamp, merged_data$last_vend, units = &quot;hours&quot;)
+<p>Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.</p>
+<pre class="r"><code>## there will be some weird diffhours btw. the machines (include a by/if function?)
+merged_data$deltahours &lt;- difftime(merged_data$timestamp, merged_data$last_vend, units = &quot;hours&quot;)
+#merged_data[!is.na(last_vend), deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = &quot;hours&quot;), by=machine]
+#merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, &quot;NA&quot;, difftime(merged_data$timestamp, merged_data$last_vend, units = &quot;hours&quot;)), by=machine]
+
 summary(merged_data$deltahours)</code></pre>
 <pre><code>##   Length    Class     Mode 
 ##  1840477 difftime  numeric</code></pre>
@@ -1663,8 +1649,10 @@ summary(merged_data$deltahours)</code></pre>
 <div id="create-auxiliary-table-called-machine_daily_average" class="section level2">
 <h2>4. Create auxiliary table called “machine_daily_average”</h2>
 <p>Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.</p>
-<pre class="r"><code>daily_sales &lt;- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
+<pre class="r"><code>### Check which one is correct
+daily_sales &lt;- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average &lt;- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
+#machine_daily_average &lt;- merged_data[ ,.(avg_daily_sales = .N), by = machine]
 machine_daily_average</code></pre>
 <pre><code>##       machine avg_daily_sales
 ##    1:       1        8.693182
@@ -1681,51 +1669,143 @@ machine_daily_average</code></pre>
 <pre class="r"><code>merged_data$daily_sales_machine &lt;- merge(merged_data, machine_daily_average, 
                                            by = &quot;machine&quot;, all = TRUE)$avg_daily_sales
 head(merged_data)</code></pre>
-<pre><code>##    machine column           timestamp       date      product_name failure
-## 1:       1     10 2017-01-04 12:51:05 2017-01-04 chocolate_based_9       0
-## 2:       1     10 2017-01-05 14:05:58 2017-01-05 chocolate_based_9       0
-## 3:       1     10 2017-01-24 12:03:39 2017-01-24 chocolate_based_9       0
-## 4:       1     10 2017-01-26 16:09:12 2017-01-26 chocolate_based_9       0
-## 5:       1     10 2017-02-01 15:34:31 2017-02-01 chocolate_based_9       0
-## 6:       1     10 2017-02-05 12:37:11 2017-02-05 chocolate_based_9       0
-##              last_vend      deltahours daily_sales_machine
-## 1: 2017-01-02 13:11:15  47.66389 hours            8.693182
-## 2: 2017-01-02 13:13:19  72.87750 hours            8.693182
-## 3: 2017-01-02 13:56:16 526.12306 hours            8.693182
-## 4: 2017-01-02 15:22:47 576.77361 hours            8.693182
-## 5: 2017-01-02 15:36:53 719.96056 hours            8.693182
-## 6: 2017-01-02 15:49:52 812.78861 hours            8.693182</code></pre>
+<pre><code>##    machine column           timestamp       date
+## 1:       1     21 2017-01-02 12:20:19 2017-01-02
+## 2:       1     54 2017-01-02 12:32:20 2017-01-02
+## 3:       1     21 2017-01-02 13:11:15 2017-01-02
+## 4:       1     24 2017-01-02 13:13:19 2017-01-02
+## 5:       1     50 2017-01-02 13:42:20 2017-01-02
+## 6:       1     24 2017-01-02 13:56:16 2017-01-02
+##                       product_name failure           last_vend
+## 1: sugar_confectionary_incl_gums_3       0                &lt;NA&gt;
+## 2:          flavoured_carbonates_2       0 2017-01-02 12:20:19
+## 3: sugar_confectionary_incl_gums_3       0 2017-01-02 12:32:20
+## 4: sugar_confectionary_incl_gums_1       0 2017-01-02 13:11:15
+## 5:        unflavoured_carbonates_1       0 2017-01-02 13:13:19
+## 6: sugar_confectionary_incl_gums_1       0 2017-01-02 13:42:20
+##          deltahours daily_sales_machine
+## 1:         NA hours            8.693182
+## 2: 0.20027778 hours            8.693182
+## 3: 0.64861111 hours            8.693182
+## 4: 0.03444444 hours            8.693182
+## 5: 0.48361111 hours            8.693182
+## 6: 0.23222222 hours            8.693182</code></pre>
 </div>
 <div id="create-delta-variable" class="section level2">
 <h2>5. Create “delta” variable</h2>
-<p>Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours /(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate</p>
-<pre class="r"><code>merged_data$delta &lt;- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)),]
+<p>Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate</p>
+<pre class="r"><code>##(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
+merged_data$delta &lt;- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)),]
 head(merged_data)    </code></pre>
-<pre><code>##    machine column           timestamp       date      product_name failure
-## 1:       1     10 2017-01-04 12:51:05 2017-01-04 chocolate_based_9       0
-## 2:       1     10 2017-01-05 14:05:58 2017-01-05 chocolate_based_9       0
-## 3:       1     10 2017-01-24 12:03:39 2017-01-24 chocolate_based_9       0
-## 4:       1     10 2017-01-26 16:09:12 2017-01-26 chocolate_based_9       0
-## 5:       1     10 2017-02-01 15:34:31 2017-02-01 chocolate_based_9       0
-## 6:       1     10 2017-02-05 12:37:11 2017-02-05 chocolate_based_9       0
-##              last_vend      deltahours daily_sales_machine           delta
-## 1: 2017-01-02 13:11:15  47.66389 hours            8.693182  17.26462 hours
-## 2: 2017-01-02 13:13:19  72.87750 hours            8.693182  26.39739 hours
-## 3: 2017-01-02 13:56:16 526.12306 hours            8.693182 190.57014 hours
-## 4: 2017-01-02 15:22:47 576.77361 hours            8.693182 208.91658 hours
-## 5: 2017-01-02 15:36:53 719.96056 hours            8.693182 260.78117 hours
-## 6: 2017-01-02 15:49:52 812.78861 hours            8.693182 294.40497 hours</code></pre>
+<pre><code>##    machine column           timestamp       date
+## 1:       1     21 2017-01-02 12:20:19 2017-01-02
+## 2:       1     54 2017-01-02 12:32:20 2017-01-02
+## 3:       1     21 2017-01-02 13:11:15 2017-01-02
+## 4:       1     24 2017-01-02 13:13:19 2017-01-02
+## 5:       1     50 2017-01-02 13:42:20 2017-01-02
+## 6:       1     24 2017-01-02 13:56:16 2017-01-02
+##                       product_name failure           last_vend
+## 1: sugar_confectionary_incl_gums_3       0                &lt;NA&gt;
+## 2:          flavoured_carbonates_2       0 2017-01-02 12:20:19
+## 3: sugar_confectionary_incl_gums_3       0 2017-01-02 12:32:20
+## 4: sugar_confectionary_incl_gums_1       0 2017-01-02 13:11:15
+## 5:        unflavoured_carbonates_1       0 2017-01-02 13:13:19
+## 6: sugar_confectionary_incl_gums_1       0 2017-01-02 13:42:20
+##          deltahours daily_sales_machine            delta
+## 1:         NA hours            8.693182         NA hours
+## 2: 0.20027778 hours            8.693182 0.07254380 hours
+## 3: 0.64861111 hours            8.693182 0.23493726 hours
+## 4: 0.03444444 hours            8.693182 0.01247633 hours
+## 5: 0.48361111 hours            8.693182 0.17517164 hours
+## 6: 0.23222222 hours            8.693182 0.08411458 hours</code></pre>
+<p>(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine</p>
 </div>
 </div>
 <div id="creating-the-model" class="section level1">
 <h1>Creating the model</h1>
 <div id="linear-logistic-regression" class="section level2">
 <h2>6. Linear logistic regression</h2>
+<p>Select 30% of the machines in the transactional data for testing and 70% of the machines for training and train a linear logistic regression model called “m” to predict whether a machine has a failure as a function of variable delta. What is the value of the intercept and the coefficient accompanying variable delta?</p>
+<p>Test train split:</p>
+<pre class="r"><code>merged_data[is.na(merged_data)] &lt;- 0</code></pre>
+<pre class="r"><code>set.seed(12)
+index &lt;- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
+train &lt;- merged_data[index == 1, ]
+test &lt;- merged_data[index == 2, ]
+
+prop.table(table(train$failure))</code></pre>
+<pre><code>## 
+##           0           1 
+## 0.993271655 0.006728345</code></pre>
+<pre class="r"><code>prop.table(table(test$failure))</code></pre>
+<pre><code>## 
+##           0           1 
+## 0.993281377 0.006718623</code></pre>
+<p>** Highly inbalanced dataset (keeping similar distribution in test and train set)</p>
+<p>Logistic regression:</p>
+<pre class="r"><code>m &lt;- glm(failure ~ delta,  data = train, family = &quot;binomial&quot;,  na.action = na.omit)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>m_predictions &lt;- predict(m, newdata = test, type = &quot;response&quot;)
+summary(m)$coefficients</code></pre>
+<pre><code>##               Estimate  Std. Error   z value Pr(&gt;|z|)
+## (Intercept) -6.9187340 0.023100490 -299.5059        0
+## delta        0.5621117 0.003118961  180.2240        0</code></pre>
+<pre class="r"><code>summary(m)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = failure ~ delta, family = &quot;binomial&quot;, data = train, 
+##     na.action = na.omit)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.9361  -0.0613  -0.0480  -0.0446   3.7201  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -6.918734   0.023100  -299.5   &lt;2e-16 ***
+## delta        0.562112   0.003119   180.2   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 104018  on 1288726  degrees of freedom
+## Residual deviance:  58224  on 1288725  degrees of freedom
+## AIC: 58228
+## 
+## Number of Fisher Scoring iterations: 9</code></pre>
 <div id="a-auc" class="section level3">
 <h3>a) AUC</h3>
+<p>What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?</p>
+<pre class="r"><code>#### DUE TO THE SHIFT -- need to remove either first or last observation
+##UPDATE:Removed observation, but still this problem
+AUC(m$fitted.values, train$failure)</code></pre>
+<pre><code>## Warning in n_pos * n_neg: NAs produced by integer overflow</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>AUC(m_predictions, test$failure)</code></pre>
+<pre><code>## [1] 0.9194075</code></pre>
 </div>
 <div id="b-plot" class="section level3">
 <h3>b) Plot</h3>
+<p>Plot the function of probability of failure with respect to delta to gain intuition</p>
+<pre class="r"><code>range(train$delta) </code></pre>
+<pre><code>## Time differences in hours
+## [1]   0.0000 610.0511</code></pre>
+<pre class="r"><code>train$delta &lt;- as.numeric(train$delta)
+
+library(ggplot2) 
+ggplot(train, aes(delta, failure)) +
+geom_point(alpha = 0.2) +
+geom_smooth(method = &quot;glm&quot;, method.args = list(family = &quot;binomial&quot;)) +
+labs(title = &quot;Logistic Regression Model&quot;, 
+    x = &quot;Delta&quot;,
+    y = &quot;Probability of Failure&quot;)</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAABqlBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZpAAZrYCAgIDAwMEBAQFBQUGBgYHBwcJCQkLCwsODg4RERESEhIVFRUaGhogICAoKCgqKioyMjIzMzMzZv86AAA6OgA6Ojo6OmY6OpA6Zjo6ZmY6ZpA6ZrY6kLY6kNs+Pj5CQkJNTU1NTW5NTY5Nbm5Nbo5NbqtNjshTU1NgYGBmAABmADpmOgBmOjpmOpBmZgBmZjpmZmZmZpBmkGZmkJBmkLZmtttmtv9uTU1ubk1ubo5ujqtujshuq+R4eHiOTU2Obk2Obm6Oq6uOyOSOyP+QOgCQOjqQZgCQZjqQZmaQkGaQkLaQtraQttuQ2/+Wlpajo6Orbk2rjm6ryOSr5P+2ZgC2Zjq2Zma2kDq2kGa2kJC2tpC2tra2ttu229u22/+2/9u2//+8vLzIjk3Ijm7Iq27IyKvI5P/I///MzMzbkDrbkGbbtmbbtpDbtrbbttvb27bb29vb2//b/7bb///kq27kyI7kyKvk///r6+v/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T///+wts+6AAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3dj58c9X3f8RVIBRvzqwJFziFSwFIWF1EpkIJr4GpAshvUQBNQpPgoJDYUyY1sGRKgKBGSkBTpdP9zZ2Z/zezM7t3Nfb+vnS/zej5suNu9O333zXzemt2ZnRtsSZJaGax6AZKUKgtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJbhALw8GD7T4tjsnB/s+2POXbN1YG5Tc/8z737RYS3s7WWKDa/li7/usfNNGftMb235n9mVHQ65EUlX6BfrFyx9s9yUT1QLN7EdbZC8FWqnL7AdZoFIHpF6gm2fG97QqULZG9lSgD9RusUClVUujQBfbVRVkBXpg+qx984uXBqFXE0VWl/evVZ7Dbwz2PWWBSqvX3wLNKnQD3gVtJyvQA39dXmj2mP/DGQtUWr0+F2jxlL65YbokL9DPywvNbnjdApU6oNcFunkmlQL9fydLK98Y3Pd/LFCpAzpRoF++nO0K7nv20+kNm58fyW547ptJBcwG/rt3n8rPQHr2k+KzyVGh7M5SJ2x+nH/N0+/X/pxlBfrdu9usIV/7G5sfrg32Pf1B4zdUl9ZwS2mJc494I6/D4gfe/1rt1Kq8QL/ZmDVetuoHNksFWk/vi5erK6+t1gKVguhAgeZlMPLcuDy+e2nSi3MFuvnh7AykvAsaC/SPk2PtB+a7aPFT+NkPXriGokA3Jofua98wv7SGW6ZLrD3ivEAnX11rtqJAr826MFv1G7MC3UF69dVaoFIQqy/Q0UmN5cqb3XLff60W6EbpDKT8sHRTgV6e/3Ez8weRzgxqjTZZX30N+Q8+Mvmx9W+YX1rDLZMl1h/xxuRHN626KNA7s+fwl7OfNi3Q+s+anas1XXlttRaoFMTqCzTvmfyp5Zf5jtPRyS35ntLnRRWUCjTvhue+zj6/+dHka6dVMPkg/5r97493uuZeAawU6M3iif4Dk2UVP/jmh4vXMGrmn3yzdfPrhm+oL61+S/mvgfojLm4q9h7nXtwsCnR6vmvxDH5rWqC1n1WUZf7nFmdpzVZeWa0FKgWx8gItPY3emO1Wvl7c8t3J6sCXvvvy/L5UqZ3GJXm5tjNXP5F+/2fj75201rWFayhqaNzI9W+oL61+S+mvgeojLmrw6PQnz9V+UaD5zzg6eRBvTAt0WXpFlR5tXK0FKgWx8gKdFd5k0Etfc61WoPs/q377fIGWyqLeErUCfXZatdNVbSxaQ37b5Oc1fsPc0uq3jBdUf8RbG7M3u2/UEhoV6HTvOX8GPy3Q+s8qff+kXeurtUClIFZdoOXDyaPhL98y2R8bD3zxFsZn/vbr0vfPF+i1hmNHU3MXE/l55SD4WHG0pmkN5T3a2jc0LK1+y2iJ9Udcab36XzHXJq+6jo6j5c/gJz9keXqTo/D11VqgUhCrLtDKKE8Ol8xuqR6Fnx4Mefpvvpn//lmBLj7RdLoXt/lRtjc5PWGofIxldJylaQ2ltde/oWFp9VtGP7X+iCsnbC4q0Mlz+OIZ/KQnt0lv9C0Nq7VApSA6WaCz933Pn8Y064L971e/v/4yaV3pINK1tdn+5HzDNK9hSYHmP6i+tNoteyvQ8eKLZ/BLC3S28muNBZr9FAtUCiKtAs1PCJ8WQeNR+J0WaPEMe/xJkAKtL612y94KdPQcPvvnpK4tUGnVOlWglxc9fa7cdvMfXi5ey5ycU9muQIuD6qMvrbxuWF9Vc4E2vpGysrTaLQ0Fenn6Gui2BVqcyJ8/hMnJSvMFWk9v9hR+brUWqBTEqgt0+WGQyXstawO/OX9uZdNBpNofVr2cXb5j9sbkz62eOtS0hvKPW/gm8/LSarcsPYi0fYFmq38gu3v6WsZuDiLNrdYClYJYdYGWj21vdxpTUzksOY2pvudVfSdSfkx+9HT3crV1jy48jal0qLz6DfWlNSx2tpPccBrT9gWa/cT8IiKTj4tvbEyvfMvRxodngUpBrLxAl50Kfqd+In35wE9TgZbOjLw2/5uE5t/KOX0SX7qsXfbh5GT3uTWU117/hvrS6rcsPZF++wLN7/r5ydmbMxefSD+7ZfqeqOpqLVApiJUX6JK3cs7ejFiqnv3Fb4LLv7ionukT7NpbOWvPpBvfCz97Q+T+T/LrOK2NF1hfw/z56NVvqC+tfsvSt3LuoECL01hnb95vfitn9ZbZTZXVWqBSEHyBzh++XnYxkbkCrX57+ToZb7S5mMjsSXz5QPV9nzWvoVJt9W+oL612y9KLieygQIs/dPbhgouJzJa275WGi4lULmsiaU9WX6Bbd16afDp/QbbBs38990R9eqm6wb7RM+zxL1g7WuqEz3d8ObvZk/jN6QlH42vR1ddQrbb6N9SXNn/L7OWG+Ue8swItvRt/9gprPb1JXe57Y/r++fnVWqBSEB0o0Pw3E+eXEp6/mHF+SeTxuxBnA3/z4+K6b0/PfqX75/lFlX7S6oLK5SPxX+ZXHC5/0/wa5qut9g31pc3dUlri3CPeYYGOX8Hcqh4gq6W39eXL+Z/66ewCJPOrtUClIOAC3aWFJ1z2bA2SOqmDBVraHVvZnlIX1iCp6zpYoJdnpx/VL+nZozVI6roOFmh+WCg/6Wbry3cHtTORerQGSV3XwQKt/DKhVe38dWENkjquiwU6O+lmempOL9cgqeO6WKDTX6j+80+3/9Lv9RokdVo3C1SSEmCBSlJLFqgktWSBSlJLFqgktWSBSlJLFqgktWSBSlJLFqgktWSBSlJLFqgktWSBSlJLFqgktWSBSlJLaIF+20rb71uxJFdt1hyz5gTM2gKFJLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNccCTU+SqzZrjllzLND0JLlqs+aYNad7BXr39IuVz++dXx8O37zU8IkFmhCz5pg1p3sFenFYKdC7p4e5n/6+9okFmhKz5pg1p2sFeu/isFqgF4fHL23dPjc8fnX+kz0X6INxPfTDhx999JHs/w9ln/zo0ccPPv7Iw48cfPKJxw8eevLRHz702JOHn3jsRw89/Mhjjz956NChw8PDTx58/IlDhw4+fmh47PDh4amzJw4fPnzo0PDs2VMniluyf2a3nj3x58dOnBieOHX2VOZsfm/+8YlTF749Ozx24kL+yC6cPXHs2Imzp7JvOJF/ydkL2U1nL1wYf3Hx0YVRCNWPLpwa5t9xoZLT7Eu2caHyk6t3/d3fXdjBD5p+RdMCt/2mHdrN1/d9qEktV73b//xhjbPezfa6+EftvUD/7ZfDaoHeWi92N++efv7Xc5/suUAj92ejH2b/e+zR0Qc/ePCh0Y0P//Dhxw4+8fBjjz78yCMPPfjYkw//6ImsUg8/8eTw4CMHjz35xHB4+NATTxx+ImvWrEYPHf4vxw4+mRXk4azsTmWtmlXeMKvZU3lnZpV59ttvz54dHj42PPzE4WPHsmLOGjEr1KzaTpy4kDXsiWPD/KPsv3MewqjyJh9l9504lnf32VJOsy/ZxtnRn9H0xWfP/uEPxRqW/6DpH1Vd1g6/aYd29fVJVlGvCnS3//kDG2W9m+11yY/ac4FeGQ7f+tdKgV4Zf3Zl+PbcJ3st0FX058PZ/3/0ox/+4MEf/PChvD2LBn3owUd+9OjBhw/+6JHHH3voB4898sjBxx4+dPjw409m/zv05MHDhw8ePvbkoWMHnzj05KETxw4eO/bnh44dfvLE4ROHTp06dupY3qKHsz3Ss3nzZbI91gtZaZ7IuvOJY8eyXdfsrmxP9dSFrBYPn8pL99ThbE/0QvbfOfvPfaEw/uhU0cYnisad5jT7km0UP2H6k+fv+sMfThV3LftB0z+quqwdftMO7e7rk6yiPhXobv/zh1ZkvZvtddmP2nuBvvD3W9crBXpx+E7x7+LWyid7LNB2DfinkrRMXqBtnsUHKNBaO947N362fmv9+NXKJ6P7fzy2+z/G4pQUwR8yf9ey/Uq+TwW66v8kklLR0QL96e8rn1S/KfJT+FX/J5GUipSewrcv0F016Kr/k0hKxQoPIpEFupsGnWazq/3WBp7G5GlM8fXpKLynMS0t0HhH4b/dTYO2Kk9PpC/f5Yn0nF4VqCfSLy3QySmf4/NA367cuMcC3fGGNtr7bPdnRJDkePRrqFfLrDldeyvnfIFGfCfSLgu03R8RQ983NFKSqzZrTtcL9N654QvTt79XPrFAk+JQc8ya090CvbVe7GfeLl+A6fZqrsZkge6dQ80xa07nC3Tr9vmsMt8c73JWPrFAE+JQc8ya070CbSXug7dA986h5pg1xwLdAQt07xxqjllzLNDtdewspt5vaKQkV23WHAt0ex3rz95vaKQkV23WHAt0exZoAA41x6w5Fuj2LNAAHGqOWXMs0O1ZoAE41Byz5lig27NAA3CoOWbNsUC3Z4EG4FBzzJpjgW7PAg3AoeaYNccC3VbXTgPt/YZGSnLVZs2xQLfVtf7s/YZGSnLVZs2xQLdlgYbgUHPMmmOBbssCDcGh5pg1xwLdlgUagkPNMWuOBbotCzQEh5pj1hwLdFsWaAgONcesORbotizQEBxqjllzLNDtdO400N5vaKQkV23WHAt0O53rz95vaKQkV23WHAt0OxZoEA41x6w5Fuh2LNAgHGqOWXMs0O1YoEE41Byz5lig27FAg3CoOWbNsUC3Y4EG4VBzzJpjgW6je2cx9X5DIyW5arPmWKDb6F5/9n5DIyW5arPmWKDbsEDDcKg5Zs2xQLdhgYbhUHPMmmOBbsMCDcOh5pg1xwLdhgUahkPNMWuOBboNCzQMh5pj1hwLdBsWaBgONcesORboch08DbT3GxopyVWbNccCXa6D/dn7DY2U5KrNmmOBLmeBBuJQc8yaY4EuZ4EG4lBzzJpjgS5ngQbiUHPMmmOBLmeBBuJQc8yaY4EuZ4EG4lBzzJpjgS5ngQbiUHPMmmOBLtXF00B7v6GRkly1WXMs0KW62J+939BISa7arDkW6FIWaCgONcesORboUhZoKA41x6w5FuhSFmgoDjXHrDkW6FIWaCgONcesORboUhZoKA41x6w5FugynTyLqfcbGinJVZs1xwJdppP92fsNjZTkqs2aY4EuY4EG41BzzJpjgS5jgQbjUHPMmmOBLmOBBuNQc8yaY4EuY4EG41BzzJpjgS5jgQbjUHPMmmOBLmOBBuNQc8yaY4Eu0c3TQHu/oZGSXLVZcyzQJbrZn73f0EhJrtqsORboEhZoOA41x6w5FugSFmg4DjXHrDkW6BIWaDgONcesORboEhZoOA41x6w5FugSFmg4DjXHrDkW6BIWaDgONcesORboYh09DbT3GxopyVWbNccCXayj/dn7DY2U5KrNmmOBLmaBBuRQc8yaY4EuZoEG5FBzzJpjgS5mgQbkUHPMmmOBLmaBBuRQc8yaY4EuZoEG5FBzzJpjgS7U1bOYer+hkZJctVlzLNCFutqfvd/QSEmu2qw5FuhCFmhIDjXHrDkW6EIWaEgONcesORboQhZoSA41x6w5FuhCFmhIDjXHrDkW6EIWaEgONcesORboQhZoSA41x6w5FuginT0NtPcbGinJVZs1xwJdpLP92fsNjZTkqs2aY4EuYoEG5VBzzJrzPSnQCIoCXfUiJPWTe6Cx9P1valKSqzZrzvdkDzTCg7dAg3KoOWbNsUAXsUCDcqg5Zs2xQBexQINyqDlmzbFAF+juaaC939BISa7arDkW6ALd7c/eb2ikJFdt1hwLdAELNCyHmmPWHAt0AQs0LIeaY9YcC3QBCzQsh5pj1hwLdAELNCyHmmPWHAt0AQs0LIeaY9YcC7RZh89i6v2GRkpy1WbNsUCbdbg/e7+hkZJctVlzLNBmFmhgDjXHrDkWaDMLNDCHmmPWHAu0mQUamEPNMWuOBdrMAg3MoeaYNccCbWaBBuZQc8yaY4E2s0ADc6g5Zs2xQJtZoIE51Byz5ligzSzQwBxqjllzLNBmFmhgDjXHrDkWaDMLNDCHmmPWHAu0mQUamEPNMWuOBdrMAg3MoeaYNccCbWaBBuZQc8yaY4E2s0ADc6g5Zs2xQJtZoIE51Byz5ligzSzQwBxqjllzLNBmFmhgDjXHrDkWaDMLNDCHmmPWHAu0mQUamEPNMWuOBdrMAg3MoeaYNccCbWaBBuZQc8yaY4E2s0ADc6g5Zs2xQJtZoIE51Byz5ligjbrcn73f0EhJrtqsORZoIws0NIeaY9YcC7SRBRqaQ80xa44F2sgCDc2h5pg1xwJtZIGG5lBzzJpjgTayQENzqDlmzbFAG1mgoTnUHLPmWKCNLNDQHGqOWXMs0EYWaGgONcesORZoIws0NIeaY9YcC7SRBRqaQ80xa44F2sgCDc2h5pg1xwJtZIGG5lBzzJpjgTayQENzqDlmzbFAG1mgoTnUHLPmWKCNLNDQHGqOWXMs0EYWaGgONcesORZoIws0NIeaY9YcC7SRBRqaQ80xa44F2sgCDc2h5pg1xwJtZIGG5lBzzJpjgTayQENzqDlmzbFAG1mgoTnUHLPmWKCNLNDQHGqOWXMs0EYWaGgONcesORZoIws0NIeaY9YcC7SRBRqaQ80xa44F2sgCDc2h5pg1xwJtZIGG5lBzzJpjgTayQENzqDlmzbFAG1mgoTnUHLPmWKCNLNDQHGqOWXMs0EYWaGgONcesORZoIws0NIeaY9YcC7SRBRqaQ80xa44F2sgCDc2h5pg1xwJtZIGG5lBzzJpjgTayQENzqDlmzbFAG1mgoTnUHLPmWKCNLNDQHGqOWXMs0EYWaGgONcesORZok073Z+83NFKSqzZrjgXaxAINzqHmmDXHAm1igQbnUHPMmmOBNrFAg3OoOWbNsUCbWKDBOdQcs+ZYoE0s0OAcao5ZcyzQJhZocA41x6w5HSvQe+fXh8M3L80+Pzec+Onvt7bunp59bIEmxaHmmDWnWwU6LshZP84V6K11C9QNjZTkqs2a060CvTg8fmnr9rnh8atzd9xaf/7X2b+uD19s/sbAD94CDc6h5pg1p1MFemu92LW8e7poy5JsR/TtUcG+bYH2fkMjJblqs+Z0qkCvjHcwr8z35JXRPum9c/PNaoGmwqHmmDWnUwV6cfhO8e/5Z+p3T4/uuHv6+D/9cjj8xaXadwZ+8BZocA41x6w5XSrQ6Q7mrfXqi6CTPdPJMaRxz2Z+PLbrP2u5okAD/0xJ2rFwBTp9TfT6cPjW1a1/Pz+cPpO3QCV9H+2pQCvnKV2fHJWf7InWjyUF3v32KXxwPq3kmDUngafw987NnrLPNaoFmgyHmmPWnAQKdG5/tPGWwA/eAg3OoeaYNadLBbrgKHz97Pn5g0wWaPc51Byz5nSqQCfnf1bPA52+4jl9Ll+v1MAP3gINzqHmmDWnUwXa+E6k0tnzF0fFWX9R1ALtPIeaY9acThVo1owv1N4Lf/f09AXPW+v5aUy3f1l/r3zgB2+BBudQc8ya06kC3bpduhrT+PohlRc8r4wvxlR7K1LgB2+BBudQc8ya060C3bp9PuvHN69ulQq0cs7S7V8Nh8+/Nb//aYF2n0PNMWtOxwq0rcAP3gINzqHmmDXHAm1igQbnUHPMmmOBNrFAg3OoOWbNsUCbWKDBOdQcs+ZYoE0s0OAcao5ZcyzQJhZocA41x6w5FmgTCzQ4h5pj1hwLtIkFGpxDzTFrjgXaxAINzqHmmDXHAm1igQbnUHPMmmOBNrFAg3OoOWbNsUCbWKDBOdQcs+ZYoE0s0OAcao5ZcyzQJhZocA41x6w5FmgTCzQ4h5pj1hwLtIkFGpxDzTFrjgXaxAINzqHmmDXHAm1igQbnUHPMmmOBNuh2f/Z+QyMluWqz5ligDSzQ8BxqjllzLNAGFmh4DjXHrDkWaAMLNDyHmmPWHAu0gQUankPNMWuOBdrAAg3PoeaYNccCbWCBhudQc8yaY4E2sEDDc6g5Zs2xQBtYoOE51Byz5ligDSzQ8BxqjllzLNAGFmh4DjXHrDkWaAMLNDyHmmPWHAu0gQUankPNMWuOBdrAAg3PoeaYNccCbWCBhudQc8yaY4E2sEDDc6g5Zs2xQBtYoOE51Byz5ligDSzQ8BxqjllzLNAGFmh4DjXHrDkWaAMLNDyHmmPWHAu0gQUankPNMWuOBdrAAg3PoeaYNccCbWCBhudQc8yaY4E2sEDDc6g5Zs2xQBtYoOE51Byz5ligDSzQ8BxqjllzVlSgm19boK31fUMjJblqs+asokC/eHkwuO+zO3/x2jcWaBt939BISa7arDl8gW5+OBgUBXpysP8zC7SFvm9opCRXbdYcvkA3BoP9/23tvs82/+dgcCDUPmjYB2+BhudQc8yagxfotcHg9a07J+/Ldj4/Xxu8YYHuXt83NFKSqzZrDl6gG4OjW+MC3bo8eMAC3b2+b2ikJFdt1hy6QDfP7PtgWqA31u4L9Cpo2AdvgYbnUHPMmkMX6Kg6xwU6/pcFujt939BISa7arDkWaAMLNDyHmmPWHP4pfH7gaNyc14Idhg/74C3Q8Bxqjllz8INIxYGjUYFmZepBpBb6vqGRkly1WXPwAr2xNnjum6JAv3tpkB9QskB3q+8bGinJVZs1hz+R/vJgMDiytu+Zp7J/Hw3UnxZo5znUHLPmrOC98H9cG4wF608LtPMcao5Zc1ZxMZGbHx/J2vP+Zz8N1p8WaOc51Byz5ng90LqO92fvNzRSkqs2aw7/Vs6QO54WaDIcao5Zc/gT6YNdQMQCTYlDzTFrzmreiWSB7kXfNzRSkqs2a85qLiZige5F3zc0UpKrNmvOCt6JdCDCi6BBH7wFGoFDzTFrDl6gNz8aDO5/5tWxn3XxvfAWaAQONcesOSs4iFTWyasxWaARONQcs+ZYoHUWaAQONcesOZ5IX2eBRuBQc8yaY4HWWaARONQcs+ZYoHUWaAQONcesOfxR+K/KvrZAd6/vGxopyVWbNceDSHUWaAQONcesORZonQUagUPNMWsO/lbOf/7N2P96abDvb3/rifS71/cNjZTkqs2as8qDSDfWQv1STgu08xxqjllzVnoU/nKwX+oR9MFboBE41Byz5qy0QMPtggZ98BZoBA41x6w5Ky3QcBcHDfrgLdAIHGqOWXNWvAdqgbbQ9w2NlOSqzZqzygLd3Bj4FL6Fvm9opCRXbdYc/DSm9yaXAn31lbVwvxk+6IO3QCNwqDlmzVntifTBTmMKqijQVS9CUp9tX6D3vxasP4P+7eEeaATuFXHMmuPVmOos0Agcao5ZcyzQOgs0AoeaY9YcC7TOAo3AoeaYNYcr0NLx9xl/K2cLfd/QSEmu2qw5XIHOXcjOy9m11vcNjZTkqs2aY4HWWaARONQcs+b4GmidBRqBQ80xa44FWmeBRuBQc8yaY4HWWaARONQcs+agR+F/9s38sXiPwrfQ9w2NlOSqzZqDHkS67zN/qVwAfd/QSEmu2qw5FmidBRqBQ80xa46vgdZZoBE41Byz5ligdRZoBA41x6w5FmidBRqBQ80xa85KCnTzq7Ev/tLXQHev7xsaKclVmzWHL9Dv3u34QaSu92fvNzRSkqs2aw5eoHO/08MC3b2+b2ikJFdt1hy8QC8PBvueeWUt//9g3+th6tMC7T6HmmPWHPy3cp7Jf5Nc9s838i4N9kvlQj54CzQGh5pj1hz+t3Lu+2Ar7878Fxpv5DVqge5W3zc0UpKrNmsOX6DFcaNrgwem/7RAd6nvGxopyVWbNWdlBZo/e79zMtRz+JAP3gKNwaHmmDWHfw20eAp/Yy3v0XGbWqC70/cNjZTkqs2agx+F3yhe/Ry9FDqqUQt0l/q+oZGSXLVZc/ACvbE2ePbT/DD80bxMfQrfQt83NFKSqzZrDv9OpI3i/UfXBoN9a4Nib9QC3aW+b2ikJFdt1pwVvBf+j/kT982N4o1IngfaQt83NFKSqzZrzkouJvIvWW9ufn7kyGuh+tMC7TyHmmPWHC9nV2OBxuBQc8yaY4HWWKAxONQcs+aAv5Xzn3/z22BP2S3Q1DjUHLPm0L9UzgLdu75vaKQkV23WHL5A77x85OngRRrywVugMTjUHLPmrKBAY+yJhnzwFmgMDjXHrDkWaI0FGoNDzTFrjgVaY4HG4FBzzJpjgdZYoDE41Byz5ligNRZoDA41x6w5FmiNBRqDQ80xa44FWmOBxuBQc8yaY4HWWKAxONQcs+ZYoDUWaAwONcesOWiB1vkrPVro+4ZGSnLVZs2xQGss0Bgcao5Zc8CrMb33at3P/J1Iu9f3DY2U5KrNmuP1QGss0Bgcao5ZcyzQGgs0BoeaY9YcC7TGAo3BoeaYNccCrbFAY3CoOWbNsUBrLNAYHGqOWXMs0BoLNAaHmmPWHAu0xgKNwaHmmDXHAq2xQGNwqDlmzbFAayzQGBxqjllzwHcindn3Qfavm19boHvU9w2NlOSqzZpDvhc+f+P76J8W6F70fUMjJblqs+aQBZrvgXa/QDvfn73f0EhJrtqsOeRT+MGB33715cn7PvlqJtTz+YAP3gKNwqHmmDUHPIh0OY3L2VmgUTjUHLPmgAW6+aEFGkTfNzRSkqs2aw56GtPmV7/5x7V9f/ubmd9273qgFmgUDhel/9gAACAASURBVDXHrDn0eaAeRNq7vm9opCRXbdYcukA33wt1EXoLNCkONcesOb4TaZ4FGoVDzTFrzioK9ObHRwaDfUdeC/iepIAP3gKNwqHmmDVnBQU6O53pqAXaRt83NFKSqzZrDl+geX/e/8yrrzwVskEDPngLNAqHmmPWHLxAb6wNDnxafPTdmUFxeRELdJf6vqGRkly1WXPwAt0YHJgcht88M3jAAt29vm9opCRXbdYc/DSmM6W9zhtrBzyRfvf6vqGRkly1WXNWeiJ9uLPqAz54CzQKh5pj1hwLdJ4FGoVDzTFrDv8UfvDG9JNrA5/Ct9D3DY2U5KrNmuNBpHkWaBQONcesOas4jWn/J8VHX77kaUyt9H1DIyW5arPmrOZE+sGRI0eCvhUp4IO3QKNwqDlmzVnBWzk/Xxu/k3Pf66H60wLtPIeaY9acVVxMZPOLV7I90GfeD3hdu4AP3gKNwqHmmDXHy9nNs0CjcKg5Zs2xQOdZoFE41Byz5lig8yzQKBxqjllzLNB5FmgUDjXHrDkW6DwLNAqHmmPWnI4V6L3z68Phm5dKt9w9PSz89PfN91ugaXCoOWbN6VaBjttyVJYjt9ZLBdpwvwWaBoeaY9acbhXoxeHxS1u3zw2PX53edH344tL7LdA0ONQcs+Z0qkBvrY/3M5//dakz3156vwWaBoeaY9acThXolfHe5pVZad47VyrLhvst0EQ41Byz5uAXVP6L5xb/OviLw3eKf5eett89ffyffjkc/uLSgvst0EQ41Byz5vBXpB8M7n+t+V3w073NW+vTFzknx5Dy6my4/8djCzt594oCDfjzJGnXFlyR/sPiQkz7m64k0lSg14fDt65u/fv5YXaXBSqpJxa+Bvrly0WHPv3+/B2lgpyeqDR52TM/ltR0/1jA3W+fwkfh00qOWXNWcxDpi1GHPvvpogKtnad0fXj86pL7Az54CzQKh5pj1pxVHYXf/OKl4prKr5UOKS0r0Hyn0wId6fuGRkpy1WbNWeFpTDffLS5N//RsN3TxUfZRZ3oUvtD3DY2U5KrNmrOyPdCPnxpMPDe5cXJ+5+w8z3vnyp1Zv98CTYVDzTFrzkoKdNKe+bH4mx/OfrdcwzuNLo52NkdF6juRCn3f0EhJrtqsOXyBjl/9nJ0Nem36m+Kzmnxh7r3ut9bz05hu/7K4qeH+4AXa/f7s/YZGSnLVZs2hC3TzzGD+4NGdk/d9Nv7wdulqS7fWi/3MK+OLMV2av98CTYpDzTFrzireibSvevrSnZMHpmfV3z6f9eObV7dmBbp1+1fD4fNvXa3db4EmxaHmmDWHL9BnP5m7afO3i98dv1PhHrwFGodDzTFrTqeuxmSB7kjfNzRSkqs2aw7+Guh7P5u9C/7GK3/WfFkRC3SZvm9opCRXbdYc/in89IjR3CcW6E71fUMjJblqs+astEBvrFmgLfR9QyMluWqz5oAFmh+An3fAp/C71/cNjZTkqs2aQ+6BXqsX6Bth+tMC7TyHmmPWHLJAN//3q6++srbvmVcnfj5/RpMFuhN939BISa7arDkrfQ00nHAP3gKNw6HmmDVnpacxWaCt9H1DIyW5arPmeCL9HAs0DoeaY9YcrkA333s12/nM/lkWanc03IO3QONwqDlmzeEK9M7JwX2fzZ/L5HmgLfR9QyMluWqz5ligcyzQOBxqjllzfA10jgUah0PNMWuOBTrHAo3DoeaYNccCnWOBxuFQc8yagx6Fr/MofAt939BISa7arDnoQaQ6DyK10PcNjZTkqs2aY4HOsUDjcKg5Zs3xNdA5FmgcDjXHrDkW6BwLNA6HmmPWHAt0jgUah0PNMWuO74WfY4HG4VBzzJrjWznnWKBxONQcs+ZYoHMs0Dgcao5Zc3wNdI4FGodDzTFrjgU6xwKNw6HmmDVnRQW6+ZUF2lrfNzRSkqs2a84qCvSLl4vXP5/91AJtpe8bGinJVZs1hy/QzTPTQ0jPBfv9cuEevAUah0PNMWsOXqB5f+575m9+8w+vZA36gAXaQt83NFKSqzZrDl6g1waDo+Mq/WgweMMC3b2+b2ikJFdt1hz898KfmfRnZiPYLmi4B2+BxuFQc8yaQxfonZP7Pph+cmPNE+lb6PuGRkpy1WbN4Qu01JmVTyzQner7hkZKctVmzeGfwlf2QA94MZHd6/uGRkpy1WbNwQ8iXS697nm59HqoBbpjfd/QSEmu2qw5eIHeOTn4yTeT/gz1DN4C7TyHmmPWHP63cr4yOg/0H19dGwye6dz1QBPoz95vaKQkV23WHH+pXJUFGolDzTFrjgVaZYFG4lBzzJrj5eyqLNBIHGqOWXMs0CoLNBKHmmPWHAu0ygKNxKHmmDVnJQW6+dXYF3/pa6C71/cNjZTkqs2awxfod+96EGlv+r6hkZJctVlzVnEifckBC3T3+r6hkZJctVlzVvBWzsG+Z15Zy/8/2Pd6mPq0QLvPoeaYNWcF1wM98E3+zzfyLg11LRELtPMcao5Zc1Z0PdDRZUQ2undFegs0EoeaY9acFV0P9FpxTaZr3bsivQUaiUPNMWvOygo0f/Z+52TnrgdqgUbiUHPMmrOiCyqPfplHB69Ib4FG4lBzzJqDH4XfKF79HL0U2sHfiWSBRuJQc8yagxfojbXBs5+OfznnRrDD8MEevAUaiUPNMWsO/06kjeL9R9cGg31rg+79Sg8LNBKHmmPWnBW8F/6P+RP3zY3ijUieB9pC3zc0UpKrNmvOSi4m8i9Zb25+fuTIa6H60wLtPIeaY9YcL2dXZYFG4lBzzJqzogLd/MoCba3vGxopyVWbNWcVBfrFy8WVmJ791AJtpe8bGinJVZs1hy/QzTPTi9k952ugbfR9QyMluWqz5uAFmvdn/nvh/+GVrEFDvRXeAu08h5pj1hy8QK9NT/7c/Gjg1Zja6PuGRkpy1WbNWcH1QGcnz294NaY2+r6hkZJctVlzVnQ90BHfC99K3zc0UpKrNmvOii5n1/CJBbpTfd/QSEmu2qw5K7qc3ciNNS8m0kLfNzRSkqs2a84KfqncA6WPvZhIC33f0EhJrtqsOav4tcY/+WbSn6GewVugnedQc8yawxXo5nuvFl4ZnQf6j6+uDQbP/Myn8LvX9w2NlOSqzZrDFWi261nnQaQW+r6hkZJctVlzLNAqCzQSh5pj1hwvZ1dlgUbiUHPMmmOBVlmgkTjUHLPmWKBVFmgkDjXHrDmrKNCbHx8ZDPYdee1rC7SVvm9opCRXbdacFRTo5ekhpFCn0Vug3edQc8yawxdo3p/3P/PqK0+FbNBgD94CjcSh5pg1By/QG2uDA6Pf5fHdmUHpffHdKNAU+rP3GxopyVWbNQcv0I3ZL4PfPNO564FaoLE41Byz5nxPrsYUSlGgq16EpN5L8nqg7oHG4l4Rx6w5XlC5wgKNxaHmmDVnBb8TafaL5K4NunZBZQs0FoeaY9YcDyJVWKCxONQcs+as4jSm/Z8UH335kqcxtdL3DY2U5KrNmrOaE+kHR44cCfpWpFAP3gKNxaHmmDVnBW/l/Hxt/E7Ofa+H6k8LtPMcao5Zc1ZxMZHNL17J9kCfeT/gOaChHrwFGotDzTFrjpezq7BAY3GoOWbN4Y/CP/upBbo3fd/QSEmu2qw5/In0pfNALdBW+r6hkZJctVlzVvpOJAu0lb5vaKQkV23WnJVeTMQCbaXvGxopyVWbNQd/DfTy5HKgFmhbfd/QSEmu2qw5eIHe/Ki4IP3Yz3wv/O71fUMjJblqs+as4CBSmVdjaqHvGxopyVWbNccCrbBAY3GoOWbN8UT6Cgs0FoeaY9YcC7TCAo3FoeaYNQcv0K8t0L3q+4ZGSnLVZs1BC3Tzw/xCTPe/Hv43yYV68BZoLA41x6w5ZIHemFzHbn/wNyOFevAWaCwONcesOWCBFgfg7/9PT2X/DP7bjEM9eAs0FoeaY9YcsEAvD0a/wuOLbEc09AVFQj14CzQWh5pj1hyuQDfPTHoza9JQv0zOAk2FQ80xaw5aoOPriNxYC/4cPtSDt0Bjcag5Zs3hCvTOycn7jmYfWaBt9H1DIyW5arPmWKAVFmgsDjXHrDkWaIUFGotDzTFrjgVaYYHG4lBzzJpjgVZYoLE41Byz5ligFRZoLA41x6w5FmiFBRqLQ80xaw5aoHVeULmFvm9opCRXbdYcC7TCAo3FoeaYNQd8J9J7r9b5S+Va6PuGRkpy1WbN8Yr0FRZoLA41x6w5FmiFBRqLQ80xa44FWpZEf/Z+QyMluWqz5ligZRZoNA41x6w5FmiZBRqNQ80xa44FWmaBRuNQc8yaY4GWWaDRONQcs+ZYoGUWaDQONcesORZomQUajUPNMWuOBVpmgUbjUHPMmmOBllmg0TjUHLPmWKBlFmg0DjXHrDkWaJkFGo1DzTFrjgVaZoFG41BzzJpjgZZZoNE41Byz5ligZRZoNA41x6w5FmiZBRqNQ80xa44FWmaBRuNQc8yaY4GWWaDRONQcs+ZYoGUWaDQONcesORZomQUajUPNMWuOBVpmgUbjUHPMmmOBllmg0TjUHLPmWKBlFmg0DjXHrDkWaJkFGo1DzTFrjgVaZoFG41BzzJpjgZZZoNE41Byz5ligZRZoNA41x6w5FmiZBRqNQ80xa44FWmaBRuNQc8yaY4GWWaDRONQcs+ZYoGUWaDQONcesORZomQUajUPNMWuOBVpmgUbjUHPMmmOBllmg0TjUHLPmWKBlFmg0DjXHrDkWaJkFGo1DzTFrjgVaZoFG41BzzJpjgZZZoNE41Byz5ligZRZoNA41x6w5FmiZBRqNQ80xa44FWmaBRuNQc8yaY4GWWaDRONQcs+ZYoCVp9GfvNzRSkqs2a44FWmKBxuNQc8yaY4GWWKDxONQcs+ZYoCUWaDwONcesORZoiQUaj0PNMWtOxwr03vn14fDNS+Wb/u1Xw+Hz45vunh4Wfvp7CzQxDjXHrDndKtBxQZb78Xejynz+1/knt9YtUDc0UpKrNmtOtwr04vD4pa3b54bHr05uuT58/q+28puKzrw+fLH5G8M8eAs0HoeaY9acThXorfWiJu+eHu1vZu6dG76zVdxU/Pvi8G0LtPcbGinJVZs1p1MFemW8g3ll2pN3T4+frRfVee/ctFkt0MQ41Byz5nSqQC+OdjebnqkXBXr39PF/+uVw+ItLte8M8+At0Hgcao5Zc7pUoNMdzFvrsxdBR0bP6ifHkMY9m/nx2K7/rEZFgYb5UZK0B0ELdPTk/vpw+NbVrX8/P5w+k7dAJX0f7alA585Tuj6qzMlrpPVjSWF2v30KH49PKzlmzUniKfz19effqXw+nN9DDfPgLdB4HGqOWXNSKNArw7mD77U9VAu08xxqjllzulSgC47C/26+PxteIw3z4C3QeBxqjllzOlWgk/M/r5Re47x3cfjCeHdzclZ9w2lOYR68BRqPQ80xa06nCrT+TqTi3Z1XZx+/WClSCzQdDjXHrDmdKtCsGV+Yey/8lfLxolvr+WlMt39ZO4ZkgXaeQ80xa06nCnTrdulqTLfWs/3QyfXrMi8WdTq6v/ZWpDAP3gKNx6HmmDWnWwW6dft81o9vFvuXRYFeH1YKdOt2fnHQt+b3Py3Q7nOoOWbN6ViBthXmwVug8TjUHLPmWKAlFmg8DjXHrDkWaIkFGo9DzTFrjgVaYoHG41BzzJpjgZZYoPE41Byz5ligJRZoPA41x6w5FmiJBRqPQ80xa44FWmKBxuNQc8yaY4GWWKDxONQcs+ZYoCUWaDwONcesORZoiQUaj0PNMWuOBVpigcbjUHPMmmOBllig8TjUHLPmWKAlFmg8DjXHrDkWaIkFGo9DzTFrjgVaYoHG41BzzJpjgZZYoPE41Byz5ligJRZoPA41x6w5FmiJBRqPQ80xa44FOpNIf/Z+QyMluWqz5ligMxZoRA41x6w5FuiMBRqRQ80xa44FOmOBRuRQc8yaY4HOWKAROdQcs+ZYoDMWaEQONcesORbojAUakUPNMWuOBTpjgUbkUHPMmmOBzligETnUHLPmWKAzFmhEDjXHrDkW6IwFGpFDzTFrjgU6Y4FG5FBzzJpjgc5YoBE51Byz5ligMxZoRA41x6w5FuiMBRqRQ80xa44FOmOBRuRQc8yaY4HOWKAROdQcs+ZYoDMWaEQONcesORbojAUakUPNMWuOBTpjgUbkUHPMmmOBzligETnUHLPmWKAzFmhEDjXHrDkW6IwFGpFDzTFrjgU6Y4FG5FBzzJpjgc5YoBE51Byz5ligMxZoRA41x6w5FuiMBRqRQ80xa44FOmOBRuRQc8yaY4HOWKAROdQcs+ZYoDMWaEQONcesORbojAUakUPNMWuOBTpjgUbkUHPMmmOBzligETnUHLPmWKAzFmhEDjXHrDkW6IwFGpFDzTFrjgU6Y4FG5FBzzJpjgc5YoBE51Byz5ligMxZoRA41x6w5FuiMBRqRQ80xa44FOmOBRuRQc8yaY4HOWKAROdQcs+ZYoDMWaEQONcesORboVCr92fsNjZTkqs2aY4FOWaAxOdQcs+ZYoFMWaEwONcesORbolAUak0PNMWuOBTplgcbkUHPMmmOBTlmgMTnUHLPmWKBTFmhMDjXHrDkW6JQFGpNDzTFrjgU6ZYHG5FBzzJpjgU5ZoDE51Byz5ligUxZoTA41x6w5FuiUBRqTQ80xa44FOmWBxuRQc8yaY4FOWaAxOdQcs+ZYoFMWaEwONcesORbolAUak0PNMWuOBTplgcbkUHPMmmOBTlmgMTnUHLPmWKBTFmhMDjXHrDkW6JQFGpNDzTFrjgU6ZYHG5FBzzJrzPSnQEIoCXfUiJGnLPdB4+v43NSnJVZs153uyBxriwVugMTnUHLPmWKBTFmhMDjXHrDkW6JQFGpNDzTFrjgU6ZYHG5FBzzJpjgU5ZoDE51Byz5ligUxZoTA41x6w5FuiUBRqTQ80xa44FOmWBxuRQc8yaY4FOWaAxOdQcs+ZYoFMWaEwONcesORbolAUak0PNMWuOBTplgcbkUHPMmmOBTlmgMTnUHLPmWKBTFmhMDjXHrDkW6JQFGpNDzTFrjgU6ZYHG5FBzzJpjgU5ZoDE51Byz5ligUxZoTA41x6w5FuhEMv3Z+w2NlOSqzZpjgU5YoFE51Byz5ligExZoVA41x6w5FuiEBRqVQ80xa44FOmGBRuVQc8yaY4FOWKBROdQcs+ZYoBMWaFQONcesORbohAUalUPNMWuOBTphgUblUHPMmmOBTligUTnUHLPmWKATFmhUDjXHrDkW6IQFGpVDzTFrjgU6YYFG5VBzzJpjgU5YoFE51Byz5ligExZoVA41x6w5FuiEBRqVQ80xa44FOmGBRuVQc8yaY4FOWKBROdQcs+ZYoBMWaFQONcesORbohAUalUPNMWuOBTphgUblUHPMmmOBTligUTnUHLPmWKBjf2qBRuVQc8yaY4GOpdOfvd/QSEmu2qw5FuiYBRqXQ80xa44FOmaBxuVQc8yaY4GOJPQSaO83NFKSqzZrjgU6klB/9n5DIyW5arPmWKAjFmhkDjXHrDkWaCGlZ/C939BISa7arDkWaCGl/uz9hkZKctVmzbFACxZobA41x6w5FmjBAo3NoeaYNccCzSX1EmjvNzRSkqs2a44FmkuqP3u/oZGSXLVZcyzQnAUanUPNMWuOBZqzQKNzqDlmzbFAv03tJdDeb2ikJFdt1hwL9NvUdkB7v6GRkly1WXMs0G8tUIJDzTFrjgWa3DP43m9opCRXbdYcCzS5HdDeb2ikJFdt1hwL1AJFONQcs+ZYoBYowqHmmDXHAk3uJdDeb2ikJFdt1hwLNLkd0N5vaKQkV23WHAvUAkU41Byz5ligFijCoeaYNccCTe4l0N5vaKQkV23WHAs0uf7s/YZGSnLVZs2xQC1QhEPNMWuOBWqBIhxqjllzel+g6b0E2vsNjZTkqs2aY4Em15+939BISa7arDkWqAWKcKg5Zs3pe4Em+Ay+9xsaKclVmzXHAk2uP3u/oZGSXLVZcyxQCxThUHPMmmOBWqAIh5pj1pyeF2iKL4H2fkMjJblqs+ZYoMn1Z+83NFKSqzZrjgVqgSIcao5ZcyxQCxThUHPMmtPvAk3yJdDeb2ikJFdt1hwLNLn+7P2GRkpy1WbNsUAtUIRDzTFrTscK9N759eHwzUsLb2q4fw8FmuYz+N5vaKQkV23WnG4V6N3Tw9xPf7/gpob791ygwR4/pu8bGinJVZs1p1sFenF4/NLW7XPD41ebb2q4fw8F+mBRoA8u9/DjJ4IlFEjfNzRSkqs2a06nCvTWerFveff0879uvKnh/j0U6IM7KtAHH3/4ULCIwuj7hkZKctVmzelUgV4Zvjj+99uNNzXc375Ax/25bYE+eOjxjjVo3zc0UpKrNmtOpwr04vCd4t/Xx0U5f1PD/a0L9MEd7oA++OBDj3fsWXzfNzRSkqs2a06XCvTeufFT81vrkxc5Kzc13P/jsV3/WVtFN+6oQB/8k//4J7v/+ZLUXgoFujMWqCTYngp0cqJS5aaG+yd2v7+88/70KXwIPq3kmDUn8afw7Qt05w3qQaQQHGqOWXP6W6A7bVBPYwrCoeaYNadLBYoehf92hw3qifRhONQcs+Z0qkAn53dWzgMt3dRw/14K1A0NZNYcs+Z0qkDZdyK5oZHMmmPWnE4V6L1zwxfm3uteuanhfgs0EWbNMWtOpwp063bpaku31ov9zPJN1U8s0JSYNcesOd0q0K3b57N+fLPYvxwXaPmmuU8s0ISYNcesOR0r0LZW/uBJSa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9YcCzQ9Sa7arDlmzbFA05Pkqs2aY9ac70mBtvPjH696Bf1h1hyz5sTL2gJViVlzzJpjgQph1hyz5ligQpg1x6w5FqgQZs0xa44FKoRZc8yaY4EKYdYcs+ZYoEKYNcesOb0uUEnqJgtUklqyQCWpJQtUklqyQCWpJQtUklqyQCWpJQtUklrqeoHeO78+HL55adXL+L76t18Nh89P4q1kbfAx3Fo/frX4wKyjuve7LNH//FfjT2Jm3fECvXt6mPvp71e9kO+n3xXpDp//df5JJWuDj+HeueGoQM06qtujRIdv5Z/EzbrjBXpxePzS1u3JZqewrg+fz/6SzuIttqdK1gYfw5XhOFCzjin7e+qFS1v3/u9ozyBu1t0u0FvrxWjfPT3aR1JQ2Xb2Tv7v7G/ld+ayNvgYbmXPHovJNeuoro/3MK8MX4yedbcLtEig+PfbK17J99Hd0+NnMhfzeCtZG3wE2V9Y/2P0GqhZxzTZMRiJnHW3C/TiOInr48etKIoCrWRt8BFcHL44Pohk1jFNdwwKkbPudIHeOzfe054evFQExROaStYGH8H17On7KE+zjioP8l//+3D4wt9vxc/aAlXxvMahjqz4a8oCBWRBnh8dhX/bAp08Xs/xiOZ6cbCykrXBh1e8TlIrULMO73p+AtPVrXu/G1afWUXJOpUC9S/nWK6vP5+/LuReUVxXiuPv7oECrg/Hh4guZk+t3APNuW1Fc2V8Gr1DHdWt9SJRCxQwzroh3r4VqAcoo/vdcHJGnEeGY7oynMqePJp1TNPn58UHfT4KPz1dy1Pk4rh3cfjC5LWgStYGH1i1QM06pul+Zn7eQ+ysu12gvkkjroult7T57hjA+KmjWUd1cbx/OT5u1+N3Io3e1OrbhCO5Us61krXBxzEuULOO6tZ6fr2l0VH42Fl3u0Anl1Xx/I4YxlemyeV/Y1eyNvgoJgcvzDqq6+ujq4wVL3jGzbrjBbp1Oz8l9k3/ao7h+rBSoNWsDT6G6dFfs47qdn7Vz19cmnwSMeuuF6gkdZYFKkktWaCS1JIFKkktWaCS1JIFKkktWaCS1JIFKkktWaCS1JIFKkktWaCS1JIFKkktWaCS1JIFqoRsDCaOPPvp4i868A25KPWYBaqEzAo08+yCmpwU6Od/Zo8qMgtUCakU6KIdzXGBuiOq+CxQJWRjcN9nxQebX76bNegDC77IAhXEAlVCpgWauTwY7Pug+YssUEEsUCWkXKD58/nGXVALVBgLVAmpFOidk5PPvnt3LdsdnRyXL5rz8uhl0qP5DV/mdw+OvGafKjQLVAmpFOjmmfFz+MuTo0rPjb+oUqCbH07u3v9Z80+V2rJAlZBKgeYl+cboX/nO580Pxw069xQ+u/u57IPvXlp00ElqzQJVQpoK9MbapBgvj/ZIqwWaPdEf3Z194IuiCswCVUJqBXo0/+fktuw5/QNb8wV6bXKsPrv3Pp/DKywLVAlp2AMdt+b47rwzFx2F37BAFZoFqoRUO3AjL9DsmXlJfndDgd788jfvPTWwQBWaBaqENByF375AP3+qfK8UkAWqhFQK9MZaXpHTg0SlLyoXaFaz+Umgr/7N1z6FV3AWqBLS8E6krCBrr3WWC3R8FtP8N0shWKBKSLkDPx9MzlqavCV+3KWVAp316+yNS1IoFqgSMrsa0xcvT67GNHomn7s2OrF+QYFe9jVQBWeBKiGN1wPNmnH/+1lVfjSYe+6+74PNrydP4b98abDo6k1SaxaoElIp0OcmL31erjbq9Az6Yh/1zkuTC9h/NNpBlcKxQJWQ0u9Eeu3r2c3fvZufqfT0+5MvGv9Kj7WsQL/ZQtP3OgAAAG5JREFU2vz4qfxSTZ80HK+X9sgClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaskClaSWLFBJaun/A09OobSq3+hHAAAAAElFTkSuQmCC" width="672" /></p>
+<pre class="r"><code>#plot(failure ~ delta, data = merged_data)
+
+#prob  &lt;- 1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*as.numeric(merged_data$delta))))
+#curve(expr = (1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*x)))), x = merged_data$delta)</code></pre>
 </div>
 <div id="c-alarms" class="section level3">
 <h3>c) Alarms</h3>

@@ -1,8 +1,6 @@
 base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
 data.table
+MLmetrics
+lattice
+ggplot2
+caret
