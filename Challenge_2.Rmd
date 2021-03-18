@@ -82,7 +82,6 @@ summary(merged_data$deltahours)
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
 Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
-### take a second look at this (KARMAN) KARMAN-Looks Good :)
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 machine_daily_average
