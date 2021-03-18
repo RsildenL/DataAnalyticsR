@@ -69,9 +69,9 @@ KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to dele
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
 ```{r deltahours, cache = TRUE}
 ## there will be some weird diffhours btw. the machines (include a by/if function?)
-#merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
+merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
 #merged_data[!is.na(last_vend), deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
-merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, "NA", difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")), by=machine]
+#merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, "NA", difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")), by=machine]
 
 summary(merged_data$deltahours)
 ```
@@ -82,8 +82,10 @@ summary(merged_data$deltahours)
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
 Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
+### Check which one is correct
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
+#machine_daily_average <- merged_data[ ,.(avg_daily_sales = .N), by = machine]
 machine_daily_average
 ```
 
@@ -141,8 +143,6 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 #### DUE TO THE SHIFT -- need to remove either first or last observation
 ##UPDATE:Removed observation, but still this problem
 AUC(m$fitted.values, train$failure)
-
-#AUC(m$fitted.values, train$failure)  ### WHY are they not the same lenght??
 AUC(m_predictions, test$failure)
 ```
 
@@ -160,6 +160,14 @@ geom_smooth(method = "glm", method.args = list(family = "binomial")) +
 labs(title = "Logistic Regression Model", 
     x = "Delta",
     y = "Probability of Failure")
+```
+
+```{r}
+plot(failure ~ delta, data = merged_data)
+
+prob  <- 1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*as.numeric(merged_data$delta))))
+curve(expr = (1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*x)))), x = merged_data$delta)
+
 ```
 
 
