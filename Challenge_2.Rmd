@@ -150,17 +150,19 @@ AUC(m_predictions, test$failure)
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
 ```{r}
-range(train$delta) 
+range(merged_data$delta, na.rm = TRUE) 
 train$delta <- as.numeric(train$delta) 
-# Marti to revise
-library(ggplot2) 
-dat <- subset(train, select=c(failure, delta))
-ggplot(dat, aes(x = delta, y = failure)) +
-geom_point(alpha = 0.2) +
-geom_smooth(method = "glm", method.args = list(family = "binomial")) +
-labs(title = "Logistic Regression Model", 
-    x = "Delta",
-    y = "Probability of Failure")
+
+b0 <- m$coefficients[[1]]
+X1 <- m$coefficients[[2]]
+
+typeof(m$coefficients)
+prob = function(delta) {
+  result <- 1/(1+exp(-(b0 + X1*delta)))
+  print(result)
+}
+curve(prob, from = 0, to = 40, n = 500)
+# prob = 1/(1+exp(-(b0 + X1*merged_data$delta)
 ```
 
 ```{r}
