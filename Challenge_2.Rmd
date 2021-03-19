@@ -153,16 +153,20 @@ Plot the function of probability of failure with respect to delta to gain intuit
 range(merged_data$delta, na.rm = TRUE) 
 train$delta <- as.numeric(train$delta) 
 
-b0 <- m$coefficients[[1]]
-X1 <- m$coefficients[[2]]
+b0 <- m$coefficients[1]
+X1 <- m$coefficients[2]
 
 typeof(m$coefficients)
 prob = function(delta) {
   result <- 1/(1+exp(-(b0 + X1*delta)))
   print(result)
 }
-curve(prob, from = 0, to = 40, n = 500)
-# prob = 1/(1+exp(-(b0 + X1*merged_data$delta)
+curve(prob, from = 0, to = 30, n = 500, 
+      xlab = "Delta", 
+      ylab = "Probability of Failure")
+
+#prob = 1/(1+exp(-(b0 + X1*merged_data$delta)
+# Possible explanation: A delta of 0-6 hours is somehow expected as traffic is significantly reduced during nighttime. Any longer non-functioning time of a machine is most probably signaling a failure, so the probability spikes.
 ```
 
 ```{r}
