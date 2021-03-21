@@ -87,7 +87,7 @@ summary(merged_data)
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
 
 ```{r}
-merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),] #changed delta to numeric
+merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),]
 head(merged_data)    
 ```
 
@@ -105,22 +105,19 @@ merged_data <- merged_data %>% drop_na()
 Given that we have 1,840,477 observations in our dataset, we have decided to drop the 2495 NA values. These NA values resulted from the shift in data from question 2.
 
 
-```{r}
+```{r, warning=FALSE}
 set.seed(12)
 index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
 train <- merged_data[index == 1, ] 
 test <- merged_data[index == 2, ]
 
-print('Distribution of failures in train set:')
-prop.table(table(train$failure))
-print('Distribution of failures in test set:')
-prop.table(table(test$failure))
-
+message('Percent of failures in train set: ', round(prop.table(table(train$failure))[2],4))
+message('Percent of failures in train set: ', round(prop.table(table(test$failure))[2],4))
 ```
 ** Highly imbalanced dataset (keeping similar distribution in test and train set)
 
 Logistic regression: 
-```{r,error=FALSE}
+```{r,warning=FALSE}
 m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
@@ -133,9 +130,8 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 auc_train <- auc(train$failure, m$fitted.values)
 auc_test <- auc(test$failure, m_predictions)
 
-print('training set:'); auc_train
-print('test set:'); auc_test
-
+message('AUC of model on the training set: ', auc_train)
+message('AUC of model on the test set: ', auc_test)
 ```
 
 
@@ -159,23 +155,21 @@ curve(prob, from = 0, to = 30, n = 500,
 ```
 
 ### c) Alarms 
-#i)
-```{r}
+#### i)
+```{r }
 f = function(x){1/(1+exp(-(b0 + X1*x)))}-0.6
 delta_med <- uniroot(f, c(0, 25))$root
 
 g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
-print('delta_med:')
-delta_med
-print('delta_high:')
-delta_high
+message('delta_med: ', delta_med)
+message('delta_high: ',delta_high)
 ```
 The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
 
 
-#ii)
+#### ii)
 ```{r,warning=FALSE}
 merged_data[, 'med_risk' := ifelse(delta >= delta_med, 1, 0)]
 merged_data[, 'high_risk' := ifelse(delta >= delta_high, 1, 0)]
@@ -183,25 +177,21 @@ merged_data[, 'high_risk' := ifelse(delta >= delta_high, 1, 0)]
 average_per_day_med <- sum(merged_data$med_risk)/uniqueN(merged_data$date)
 average_per_day_high <- sum(merged_data$high_risk)/uniqueN(merged_data$date)
 
-print('Avg. number of medium-risk alarms per day:')
-average_per_day_med
-print('Avg. number of high-risk alarms per day:')
-average_per_day_high
+message('Avg. number of medium-risk alarms per day: ', round(average_per_day_med,2))
+message('Avg. number of high-risk alarms per day: ', round(average_per_day_high,2))
 ```
 
-#iii)
+#### iii)
 ```{r}
 med_false_alarm <- merged_data[med_risk == 1, (1-mean(failure)),]*100
 high_false_alarm <- merged_data[high_risk == 1, (1-mean(failure)),]*100
 
-print('Percentage of medium-risk alarms that are false alarms:')
-round(med_false_alarm, 2)
-print('Percentage of high-risk alarms that are false alarms:')
-round(high_false_alarm, 2)
+message('Percentage of medium-risk alarms that are false alarms: ', round(med_false_alarm, 2))
+message('Percentage of high-risk alarms that are false alarms: ', round(high_false_alarm, 2))
 ```
 
 ### d) Profit impact
-# In this exercise we will estimate the profit impact of our EWS system vs the current system:
+In this exercise we will estimate the profit impact of our EWS system vs the current system:
 ```{r}
 # First, we filter by the instances that we classified as values with at least a medium risk of failure.
 dt_alarm_med = merged_data[delta >= delta_med]
@@ -222,12 +212,10 @@ return(perc_incr)
 }
 
 ## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
-print('Average annual percentage increase in revenue for med-risk EWS:')
-annual_perc_incr(dt_alarm_med, delta_med)
+message('Average annual percentage increase in revenue for med-risk EWS: ', annual_perc_incr(dt_alarm_med, delta_med))
 
 ## ii. And if we set the EWS only with the high-risk alarms?
-print('Average annual percentage increase in revenue for high-risk EWS:')
-annual_perc_incr(dt_alarm_high, delta_high)
+message('Average annual percentage increase in revenue for high-risk EWS: ', annual_perc_incr(dt_alarm_high, delta_high))
 ```
 If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 1.52%.
 Applying an EWS for high risk alarms only we forecast an increase in revenue of 1.49%. We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher. 
