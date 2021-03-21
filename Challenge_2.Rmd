@@ -27,8 +27,6 @@ Predicting Machine Failure
 
 # Creating the relevant variable for the model
 ```{r Read the datafiles, cache = TRUE}
-#machine_data <- fread("Data/machine_data.csv")
-#product_data <- fread("Data/product_data.csv")
 transaction_data <- fread("Data/transactional_data.csv")
 transaction_data$date <- as.Date(transaction_data$date)
 machine_failures <- fread("Data/machine_failures.csv")
@@ -55,9 +53,6 @@ Hint: Remember you can use the function “shift” once the data is ordered acc
 ```{r last_vend}
 merged_data <- merged_data[order(machine, timestamp)]
 merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]  #Rebecca
-
-#merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )  ## Karman 
-#merged_data<- merged_data[-1,] ## Karman
 ```
 A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, an the last_vend is reported as NA.
 
@@ -71,14 +66,14 @@ Create a new variable in the transactional data table called “deltahours” co
 # Check datatypes (deltahours only one in hours format)
 
 ```{r deltahours, cache = TRUE}
-## there will be some weird diffhours btw. the machines (include a by/if function?)
-merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
-#merged_data[!is.na(last_vend), deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
-#merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, "NA", difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")), by=machine]
+merged_data$deltahours <- as.numeric(difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"))
 #merged_data[, 'deltahours' := as.numeric(difftime(timestamp, last_vend, units = 'hours'))] ##Afonso
 summary(merged_data$deltahours)
-```
 
+#check if the numbers are correct (compare with other teams)
+
+```
+There are 2495 NA's, which correspond to the first instance of each machine, as there is no previous timestamp available.
 
 
 ## 4. Create auxiliary table called "machine_daily_average"
@@ -88,30 +83,28 @@ Use this auxiliary table to attach to every row of the transactional data table 
 ### Check which one is correct
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
+merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
 #machine_daily_average <- merged_data[ ,.(avg_daily_sales = .N), by = machine]
-machine_daily_average
 
 ##Afonso
 #machine_daily_average <- merged_data[, avg_daily_sales := mean(.N), by = .(machine, date)] 
-#machine_daily_average <- machine_daily_average[, c('machine', 'date', 'avg_daily_sales')]
-#machine_daily_average <- machine_daily_average[, mean_daily_sales := mean(avg_daily_sales), by = c('machine', 'date')]
+#machine_daily_average <- merged_data[, c('machine', 'date', 'avg_daily_sales')]
+#machine_daily_average <- machine_daily_average[, mean_daily_sales := mean(.N), by = c('machine', 'date')]
 #machine_daily_average <- machine_daily_average[, mean(mean_daily_sales), by = machine]
 #merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
-```
+head(machine_daily_average)
+summary(merged_data)
 
-```{r}
-merged_data$daily_sales_machine <- merge(merged_data, machine_daily_average, 
-                                           by = "machine", all = TRUE)$avg_daily_sales
-head(merged_data)
+#check if the numbers are correct (compare with other teams)
+#comment on distribution of daily sales etc. 
 ```
-
 
 ## 5. Create "delta" variable 
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
 
 ```{r}
 ##(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
-merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/daily_sales_machine))),] #changed delta to numeric
+merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),] #changed delta to numeric
 head(merged_data)    
 ```
 
@@ -124,8 +117,12 @@ Select 30% of the machines in the transactional data for testing and 70% of the 
 
 Test train split: 
 ```{r}
-merged_data[is.na(merged_data)] <- 0
+library(tidyr)
+merged_data <- merged_data %>% drop_na()
+#change to removing NAs
 ```
+Given that we have 1,840,477 observations in our dataset, we have decided to drop the 2495 NA values. These NA values resulted from the shift in data from question 2.
+
 
 ```{r}
 set.seed(12)
@@ -135,15 +132,16 @@ test <- merged_data[index == 2, ]
 
 prop.table(table(train$failure))
 prop.table(table(test$failure))
+
 ```
-** Highly inbalanced dataset (keeping similar distribution in test and train set)
+** Highly imbalanced dataset (keeping similar distribution in test and train set)
 
 Logistic regression: 
 ```{r}
 m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
-#pred_train <- predict(m, train, type = 'response')
-#pred_test <- predict(m, test, type = 'response')
+pred_train <- predict(m, train, type = 'response')
+pred_test <- predict(m, test, type = 'response')
 summary(m)$coefficients
 summary(m)
 ```
@@ -154,11 +152,14 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 ```{r}
 #### DUE TO THE SHIFT -- need to remove either first or last observation
 ##UPDATE:Removed observation, but still this problem
-AUC(m$fitted.values, train$failure)
-AUC(m_predictions, test$failure)
 
-#auc_train <- auc(train$failure, pred_train)
-#auc_test <- auc(test$failure, pred_test)
+library(pROC)
+auc_train <- auc(train$failure, m$fitted.values)
+auc_test <- auc(test$failure, m_predictions)
+
+print('training set:'); auc_train
+print('test set:'); auc_test
+
 ```
 
 
@@ -184,68 +185,74 @@ curve(prob, from = 0, to = 30, n = 500,
 # Possible explanation: A delta of 0-6 hours is somehow expected as traffic is significantly reduced during nighttime. Any longer non-functioning time of a machine is most probably signaling a failure, so the probability spikes.
 ```
 
-```{r}
-#plot(failure ~ delta, data = merged_data)
-
-#prob  <- 1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*as.numeric(merged_data$delta))))
-#curve(expr = (1/(1+exp(-(summary(m)$coefficients[1] + summary(m)$coefficients[2]*x)))), x = merged_data$delta)
-
-```
-
-
 ### c) Alarms 
 #i)
 ```{r}
-f = function(x){1/(1+exp(-(-6.921262 + 0.563285*x)))}-0.6
+f = function(x){1/(1+exp(-(b0 + X1*x)))}-0.6
 delta_med <- uniroot(f, c(0, 25))$root
 
-g = function(x){1/(1+exp(-(-6.921262 + 0.563285*x)))}-0.8
+g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
+delta_med
+delta_high
 ```
+The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
+
 
 #ii)
 ```{r}
 merged_data[, 'med_risk' := ifelse(delta >= delta_med, 1, 0)]
 merged_data[, 'high_risk' := ifelse(delta >= delta_high, 1, 0)]
 
-average_per_day_med <- sum(merged_data$med_risk, na.rm=T)/uniqueN(merged_data$date)
-average_per_day_high <- sum(merged_data$high_risk, na.rm=T)/uniqueN(merged_data$date)
+average_per_day_med <- sum(merged_data$med_risk)/uniqueN(merged_data$date)
+average_per_day_high <- sum(merged_data$high_risk)/uniqueN(merged_data$date)
 
+print('Avg. number of medium-risk alarms per day:')
+average_per_day_med
+print('Avg. number of high-risk alarms per day:')
+average_per_day_high
 ```
 
 #iii)
 ```{r}
-merged_data[med_risk == 1, (1-mean(failure)),]
-merged_data[high_risk == 1, (1-mean(failure)),]
+med_false_alarm <- merged_data[med_risk == 1, (1-mean(failure)),]*100
+high_false_alarm <- merged_data[high_risk == 1, (1-mean(failure)),]*100
+
+print('Percentage of medium-risk alarms that are false alarms:')
+round(med_false_alarm, 2)
+print('Percentage of high-risk alarms that are false alarms:')
+round(high_false_alarm, 2)
 ```
 
 ### d) Profit impact
 # In this exercise we will estimate the profit impact of our EWS system vs the current system:
 ```{r}
 # First, we filter by the instances that we classified as values with at least a medium risk of failure.
-dt_alarm_med = merged_data[delta > delta_med]
-dt_alarm_high = merged_data[delta > delta_high]# Assumption: Filter both medium and high risk because high risk instances imply having a medium risk of failure as well.
+dt_alarm_med = merged_data[delta >= delta_med]
+dt_alarm_high = merged_data[delta >= delta_high]# Assumption: Filter both medium and high risk because high risk instances imply having a medium risk of failure as well.
 
 annual_perc_incr <- function(x, delta_x) {
-conversion_factor <- 24/x$daily_sales_machine
+conversion_factor <- 24/x$avg_daily_sales
 x[, threshold_hours:=delta_x*conversion_factor]
 x[, threshold_hours_fixed := threshold_hours + 1.5]  # The 1.5 stands for the average time it takes to fix a machine.
-x[, delta_fixed:= threshold_hours_fixed * (1/(24/daily_sales_machine))]
+x[, delta_fixed:= threshold_hours_fixed * (1/(24/avg_daily_sales))]
 x[, won_sales := failure*(delta-delta_fixed)]
 add_rev = sum(x$won_sales*1.7) # Additional revenue of the EWS for at least medium risk alarms.
 sys_cost = 10*(nrow(x[failure == 0])) # Cost of the system
 vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10 # Cost of current system per year (2.2 false alarm per machine per YEAR)
-annual_profit_incr = 4*(add_rev - vendex_cost_prev) - sys_cost # As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
+annual_profit_incr = 4*(add_rev - sys_cost ) - vendex_cost_prev # As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
 perc_incr = (annual_profit_incr/(nrow(merged_data)*1.7*4))*100 # Again, we have to multiply the denominator by 4 so that we receive the annual profit increase in percentage.
 return(perc_incr)
 }
 
 ## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
+print('Average annual percentage increase in revenue for med-risk EWS:')
 annual_perc_incr(dt_alarm_med, delta_med)
 
 ## ii. And if we set the EWS only with the high-risk alarms?
+print('Average annual percentage increase in revenue for high-risk EWS:')
 annual_perc_incr(dt_alarm_high, delta_high)
 ```
-If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 0.3895761%.
-Applying an EWS for high risk alarms only we forecast an increase in revenue of 0.2217171%.
+If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 1.52%.
+Applying an EWS for high risk alarms only we forecast an increase in revenue of 1.49%. We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher. 
