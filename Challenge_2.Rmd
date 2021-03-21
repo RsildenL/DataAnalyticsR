@@ -54,7 +54,7 @@ In the transactional data table, create a variable called “last_vend” contai
 Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
 ```{r last_vend}
 merged_data <- merged_data[order(machine, timestamp)]
-merged_data[, last_vend := shift(timestamp, 1), by=machine]  #Rebecca
+merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]  #Rebecca
 
 #merged_data$last_vend <- shift(merged_data$timestamp, n = 1 )  ## Karman 
 #merged_data<- merged_data[-1,] ## Karman
@@ -72,7 +72,7 @@ Create a new variable in the transactional data table called “deltahours” co
 merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
 #merged_data[!is.na(last_vend), deltahours := difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"), by=machine]
 #merged_data[, deltahours := ifelse(is.na(last_vend)==TRUE, "NA", difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")), by=machine]
-
+#merged_data[, 'deltahours' := as.numeric(difftime(timestamp, last_vend, units = 'hours'))]
 summary(merged_data$deltahours)
 ```
 
@@ -87,6 +87,13 @@ daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 #machine_daily_average <- merged_data[ ,.(avg_daily_sales = .N), by = machine]
 machine_daily_average
+
+
+#machine_daily_average <- merged_data[, avg_daily_sales := mean(.N), by = .(machine, date)]
+#machine_daily_average <- machine_daily_average[, c('machine', 'date', 'avg_daily_sales')]
+#machine_daily_average <- machine_daily_average[, mean_daily_sales := mean(avg_daily_sales), by = c('machine', 'date')]
+#machine_daily_average <- machine_daily_average[, mean(mean_daily_sales), by = machine]
+#merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
 ```
 
 ```{r}
@@ -120,7 +127,7 @@ merged_data[is.na(merged_data)] <- 0
 ```{r}
 set.seed(12)
 index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
-train <- merged_data[index == 1, ]
+train <- merged_data[index == 1, ] #merged_data$machine
 test <- merged_data[index == 2, ]
 
 prop.table(table(train$failure))
@@ -132,6 +139,8 @@ Logistic regression:
 ```{r}
 m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
+#pred_train <- predict(m, train, type = 'response')
+#pred_test <- predict(m, test, type = 'response')
 summary(m)$coefficients
 summary(m)
 ```
@@ -144,6 +153,9 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 ##UPDATE:Removed observation, but still this problem
 AUC(m$fitted.values, train$failure)
 AUC(m_predictions, test$failure)
+
+#auc_train <- auc(train$failure, pred_train)
+#auc_test <- auc(test$failure, pred_test)
 ```
 
 
