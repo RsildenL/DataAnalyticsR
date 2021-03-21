@@ -67,6 +67,9 @@ KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to dele
 
 ## 3. Create "deltahours" variable
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
+
+# Check datatypes (deltahours only one in hours format)
+
 ```{r deltahours, cache = TRUE}
 ## there will be some weird diffhours btw. the machines (include a by/if function?)
 merged_data$deltahours <- difftime(merged_data$timestamp, merged_data$last_vend, units = "hours")
@@ -108,7 +111,7 @@ Create a new variable called “delta” in the transactional data table contain
 
 ```{r}
 ##(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
-merged_data$delta <- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)),]
+merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/daily_sales_machine))),] #changed delta to numeric
 head(merged_data)    
 ```
 
@@ -218,47 +221,40 @@ merged_data[high_risk == 1, (1-mean(failure)),]
 ```
 
 ### d) Profit impact
-dt_alarm_med <- merged_data[med_risk == 1]
-head(dt_alarm_med)
-dt_alarm_med$threshold_hours <- dt_alarm_med[, .('threshold_hours' = delta*24/daily_sales_machine)]
-head(dt_alarm_med)
+# In this exercise we will estimate the profit impact of our EWS system vs the current system:
 
+## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
+```{r}
+# First, we filter by the instances that we classified as values with at least a medium risk of failure.
+dt_alarm_med = merged_data[delta > delta_med] # Assumption: Filter both medium and high risk because high risk instances imply having a medium risk of failure as well.
 
+conversion_factor <- 24/dt_alarm_med$daily_sales_machine
 
-
-
-# Select only the transactions that would have generated an alarm according to the version of the EWS
-dt_alarm_med = merged_data[delta > delta_med]
-
-# Conversion factor
-conversion_factor <- 24/data_alarm$daily_sales_machine
-
-# Converting from deltas to hours
 dt_alarm_med[, threshold_hours:=delta_med*conversion_factor]
 
-# Add 1.5 hours of repairing time to that threshold hours creating threshold_hours_fixed
-dt_alarm_med[, threshold_hours_fixed := threshold_hours + 1.5]
+dt_alarm_med[, threshold_hours_fixed := threshold_hours + 1.5] # The 1.5 stands for the average time it takes to fix a machine.
 
-# Convert threshold_hours_fixed back to a delta
 dt_alarm_med[, delta_fixed:= threshold_hours_fixed * (1/(24/daily_sales_machine))]
 
-# A variable called “won_sales” multypling the binary failure variable by (delta – delta_fixed)
 dt_alarm_med[, won_sales := failure*(delta-delta_fixed)]
 
-# Additional revenues will be the sum of won_sales times the average margin of every sale 
-add_rev = sum(as.numeric(dt_alarm_med$won_sales)*1.7)
+add_rev = sum(dt_alarm_med$won_sales*1.7) # 
 
 # Cost of the system
-# The cost of an operator checking if the machine is broken is 10 euros
 sys_cost = 10*(nrow(dt_alarm_med[failure == 0]))
 
-# Vendex cost of failures current system per year
+# Cost of current system per year
 vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10
 
 # The profit increase as a % of the total profit can be estimated as the profit increase / (margin_per_item * number_of_transactions) 
-profit_increase = 4*(add_rev - vendex_cost_prev) + sys_cost
-profit_increase_self = (add_rev - vendex_cost_prev) - sys_cost
+# As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
+annual_profit_incr = 4*(add_rev - vendex_cost_prev) - sys_cost
 
-percentage_increase = profit_increase/(nrow(merged_data)*1.7*4)
-percentage_increase_self = profit_increase_self/(nrow(merged_data)*1.7)
+# Again, we have to multiply the denominator by 4 so that we receive the annual profit increase in percentage.
+perc_incr = annual_profit_incr/(nrow(merged_data)*1.7*4)
+```
 
+## ii. And if we set the EWS only with the high-risk alarms?
+```{r}
+
+```
