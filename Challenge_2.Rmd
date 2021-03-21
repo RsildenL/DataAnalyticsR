@@ -172,8 +172,8 @@ delta_med <- uniroot(f, c(0, 25))$root
 g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
-message('delta_med: ', delta_med)
-message('delta_high: ',delta_high)
+message('delta_med: ', round(delta_med, 2)
+message('delta_high: ',round(delta_high, 2))
 ```
 The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
 
@@ -220,10 +220,10 @@ return(perc_incr)
 }
 
 ## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
-message('Average annual percentage increase in revenue for med-risk EWS: ', annual_perc_incr(dt_alarm_med, delta_med))
+message('Average annual percentage increase in revenue for med-risk EWS: ', round(annual_perc_incr(dt_alarm_med, delta_med),4))
 
 ## ii. And if we set the EWS only with the high-risk alarms?
-message('Average annual percentage increase in revenue for high-risk EWS: ', annual_perc_incr(dt_alarm_high, delta_high))
+message('Average annual percentage increase in revenue for high-risk EWS: ', round(annual_perc_incr(dt_alarm_high, delta_high),4))
 ```
 If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 1.52%.
 Applying an EWS for high risk alarms only we forecast an increase in revenue of 1.49%. We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher. 
