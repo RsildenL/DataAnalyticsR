@@ -120,7 +120,7 @@ prop.table(table(test$failure))
 ** Highly imbalanced dataset (keeping similar distribution in test and train set)
 
 Logistic regression: 
-```{r}
+```{r,error=FALSE}
 m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
@@ -176,7 +176,7 @@ The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk
 
 
 #ii)
-```{r}
+```{r,warning=FALSE}
 merged_data[, 'med_risk' := ifelse(delta >= delta_med, 1, 0)]
 merged_data[, 'high_risk' := ifelse(delta >= delta_high, 1, 0)]
 

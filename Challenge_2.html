@@ -333,15 +333,12 @@ merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]</code></pre>
 <div id="create-deltahours-variable" class="section level2">
 <h2>3. Create “deltahours” variable</h2>
 <p>Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.</p>
-</div>
-</div>
-<div id="check-datatypes-deltahours-only-one-in-hours-format" class="section level1">
-<h1>Check datatypes (deltahours only one in hours format)</h1>
 <pre class="r"><code>merged_data$deltahours &lt;- as.numeric(difftime(merged_data$timestamp, merged_data$last_vend, units = &quot;hours&quot;))
 summary(merged_data$deltahours)</code></pre>
 <pre><code>##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.      NA&#39;s 
 ##    0.0003    0.0175    0.5933    2.8956    2.7642 1576.1375      2495</code></pre>
 <p>There are 2495 NA’s, which correspond to the first instance of each machine, as there is no previous timestamp available.</p>
+</div>
 <div id="create-auxiliary-table-called-machine_daily_average" class="section level2">
 <h2>4. Create auxiliary table called “machine_daily_average”</h2>
 <p>Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.</p>
@@ -501,17 +498,8 @@ print(&#39;delta_med:&#39;)</code></pre>
 <pre><code>## [1] 14.73126</code></pre>
 <p>The medium-risk alarm will be activated when delta &gt;= 12.99263 and the high-risk alarm will be activated when delta &gt;= 14.73126.</p>
 <p>#ii)</p>
-<pre class="r"><code>merged_data[, &#39;med_risk&#39; := ifelse(delta &gt;= delta_med, 1, 0)]</code></pre>
-<pre><code>## Warning in `[.data.table`(merged_data, , `:=`(&quot;med_risk&quot;, ifelse(delta &gt;= :
-## Invalid .internal.selfref detected and fixed by taking a (shallow) copy of the
-## data.table so that := can add this new column by reference. At an earlier point,
-## this data.table has been copied by R (or was created manually using structure()
-## or similar). Avoid names&lt;- and attr&lt;- which in R currently (and oddly) may
-## copy the whole data.table. Use set* syntax instead to avoid copying: ?set, ?
-## setnames and ?setattr. If this message doesn&#39;t help, please report your use case
-## to the data.table issue tracker so the root cause can be fixed or this message
-## improved.</code></pre>
-<pre class="r"><code>merged_data[, &#39;high_risk&#39; := ifelse(delta &gt;= delta_high, 1, 0)]
+<pre class="r"><code>merged_data[, &#39;med_risk&#39; := ifelse(delta &gt;= delta_med, 1, 0)]
+merged_data[, &#39;high_risk&#39; := ifelse(delta &gt;= delta_high, 1, 0)]
 
 average_per_day_med &lt;- sum(merged_data$med_risk)/uniqueN(merged_data$date)
 average_per_day_high &lt;- sum(merged_data$high_risk)/uniqueN(merged_data$date)
