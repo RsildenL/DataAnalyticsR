@@ -4,3 +4,5 @@ MLmetrics
 lattice
 ggplot2
 caret
+tidyr
+pROC

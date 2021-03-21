@@ -21,6 +21,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(MLmetrics)
 library(caret)
+library(tidyr)
+library(pROC)
+
 ```
 
 Predicting Machine Failure
@@ -52,13 +55,10 @@ In the transactional data table, create a variable called “last_vend” contai
 Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
 ```{r last_vend}
 merged_data <- merged_data[order(machine, timestamp)]
-merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]  #Rebecca
+merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]
 ```
 A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, an the last_vend is reported as NA.
 
-REBECCA - Solved weird stuff between machines using by = machine (fill = 0 first obs with 0's)
-KARMAN-Order(machine, timestamp) instead of (machine, date)
-KARMAN-Changed the n=-1 to n=1, removed first row [I think we still need to delete every first row of each machine]
 
 ## 3. Create "deltahours" variable
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
@@ -67,11 +67,7 @@ Create a new variable in the transactional data table called “deltahours” co
 
 ```{r deltahours, cache = TRUE}
 merged_data$deltahours <- as.numeric(difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"))
-#merged_data[, 'deltahours' := as.numeric(difftime(timestamp, last_vend, units = 'hours'))] ##Afonso
 summary(merged_data$deltahours)
-
-#check if the numbers are correct (compare with other teams)
-
 ```
 There are 2495 NA's, which correspond to the first instance of each machine, as there is no previous timestamp available.
 
@@ -80,18 +76,9 @@ There are 2495 NA's, which correspond to the first instance of each machine, as 
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
 Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
 ```{r}
-### Check which one is correct
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
-#machine_daily_average <- merged_data[ ,.(avg_daily_sales = .N), by = machine]
-
-##Afonso
-#machine_daily_average <- merged_data[, avg_daily_sales := mean(.N), by = .(machine, date)] 
-#machine_daily_average <- merged_data[, c('machine', 'date', 'avg_daily_sales')]
-#machine_daily_average <- machine_daily_average[, mean_daily_sales := mean(.N), by = c('machine', 'date')]
-#machine_daily_average <- machine_daily_average[, mean(mean_daily_sales), by = machine]
-#merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
 head(machine_daily_average)
 summary(merged_data)
 
@@ -103,7 +90,6 @@ summary(merged_data)
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
 
 ```{r}
-##(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
 merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),] #changed delta to numeric
 head(merged_data)    
 ```
@@ -117,9 +103,7 @@ Select 30% of the machines in the transactional data for testing and 70% of the 
 
 Test train split: 
 ```{r}
-library(tidyr)
 merged_data <- merged_data %>% drop_na()
-#change to removing NAs
 ```
 Given that we have 1,840,477 observations in our dataset, we have decided to drop the 2495 NA values. These NA values resulted from the shift in data from question 2.
 
@@ -127,10 +111,12 @@ Given that we have 1,840,477 observations in our dataset, we have decided to dro
 ```{r}
 set.seed(12)
 index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
-train <- merged_data[index == 1, ] #merged_data$machine
+train <- merged_data[index == 1, ] 
 test <- merged_data[index == 2, ]
 
+print('Distribution of failures in train set:')
 prop.table(table(train$failure))
+print('Distribution of failures in test set:')
 prop.table(table(test$failure))
 
 ```
@@ -140,20 +126,13 @@ Logistic regression:
 ```{r}
 m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.omit)
 m_predictions <- predict(m, newdata = test, type = "response")
-pred_train <- predict(m, train, type = 'response')
-pred_test <- predict(m, test, type = 'response')
 summary(m)$coefficients
-summary(m)
 ```
 
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
 ```{r}
-#### DUE TO THE SHIFT -- need to remove either first or last observation
-##UPDATE:Removed observation, but still this problem
-
-library(pROC)
 auc_train <- auc(train$failure, m$fitted.values)
 auc_test <- auc(test$failure, m_predictions)
 
@@ -166,23 +145,20 @@ print('test set:'); auc_test
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
 ```{r}
-range(merged_data$delta, na.rm = TRUE) 
+#range(merged_data$delta, na.rm = TRUE) 
 train$delta <- as.numeric(train$delta) 
 
 b0 <- m$coefficients[1]
 X1 <- m$coefficients[2]
 
-typeof(m$coefficients)
+#typeof(m$coefficients)
 prob = function(delta) {
   result <- 1/(1+exp(-(b0 + X1*delta)))
-  print(result)
+#  print(result)
 }
 curve(prob, from = 0, to = 30, n = 500, 
       xlab = "Delta", 
       ylab = "Probability of Failure")
-
-#prob = 1/(1+exp(-(b0 + X1*merged_data$delta)
-# Possible explanation: A delta of 0-6 hours is somehow expected as traffic is significantly reduced during nighttime. Any longer non-functioning time of a machine is most probably signaling a failure, so the probability spikes.
 ```
 
 ### c) Alarms 
@@ -194,7 +170,9 @@ delta_med <- uniroot(f, c(0, 25))$root
 g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
+print('delta_med:')
 delta_med
+print('delta_high:')
 delta_high
 ```
 The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
