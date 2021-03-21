@@ -112,7 +112,7 @@ merged_data$delta <- merged_data[ ,.(delta = deltahours/(24/daily_sales_machine)
 head(merged_data)    
 ```
 
-(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine 
+(24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine.
 
 # Creating the model 
 
@@ -218,5 +218,47 @@ merged_data[high_risk == 1, (1-mean(failure)),]
 ```
 
 ### d) Profit impact
+dt_alarm_med <- merged_data[med_risk == 1]
+head(dt_alarm_med)
+dt_alarm_med$threshold_hours <- dt_alarm_med[, .('threshold_hours' = delta*24/daily_sales_machine)]
+head(dt_alarm_med)
 
+
+
+
+
+# Select only the transactions that would have generated an alarm according to the version of the EWS
+dt_alarm_med = merged_data[delta > delta_med]
+
+# Conversion factor
+conversion_factor <- 24/data_alarm$daily_sales_machine
+
+# Converting from deltas to hours
+dt_alarm_med[, threshold_hours:=delta_med*conversion_factor]
+
+# Add 1.5 hours of repairing time to that threshold hours creating threshold_hours_fixed
+dt_alarm_med[, threshold_hours_fixed := threshold_hours + 1.5]
+
+# Convert threshold_hours_fixed back to a delta
+dt_alarm_med[, delta_fixed:= threshold_hours_fixed * (1/(24/daily_sales_machine))]
+
+# A variable called “won_sales” multypling the binary failure variable by (delta – delta_fixed)
+dt_alarm_med[, won_sales := failure*(delta-delta_fixed)]
+
+# Additional revenues will be the sum of won_sales times the average margin of every sale 
+add_rev = sum(as.numeric(dt_alarm_med$won_sales)*1.7)
+
+# Cost of the system
+# The cost of an operator checking if the machine is broken is 10 euros
+sys_cost = 10*(nrow(dt_alarm_med[failure == 0]))
+
+# Vendex cost of failures current system per year
+vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10
+
+# The profit increase as a % of the total profit can be estimated as the profit increase / (margin_per_item * number_of_transactions) 
+profit_increase = 4*(add_rev - vendex_cost_prev) + sys_cost
+profit_increase_self = (add_rev - vendex_cost_prev) - sys_cost
+
+percentage_increase = profit_increase/(nrow(merged_data)*1.7*4)
+percentage_increase_self = profit_increase_self/(nrow(merged_data)*1.7)
 
