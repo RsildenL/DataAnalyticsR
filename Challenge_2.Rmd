@@ -62,9 +62,6 @@ A last_vend variable, containing the timestamp of the previous sale of each mach
 
 ## 3. Create "deltahours" variable
 Create a new variable in the transactional data table called “deltahours” containing, for every sale, the hours that passed since the last sale.
-
-# Check datatypes (deltahours only one in hours format)
-
 ```{r deltahours, cache = TRUE}
 merged_data$deltahours <- as.numeric(difftime(merged_data$timestamp, merged_data$last_vend, units = "hours"))
 summary(merged_data$deltahours)
