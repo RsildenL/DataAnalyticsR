@@ -222,39 +222,30 @@ merged_data[high_risk == 1, (1-mean(failure)),]
 
 ### d) Profit impact
 # In this exercise we will estimate the profit impact of our EWS system vs the current system:
-
-## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
 ```{r}
 # First, we filter by the instances that we classified as values with at least a medium risk of failure.
-dt_alarm_med = merged_data[delta > delta_med] # Assumption: Filter both medium and high risk because high risk instances imply having a medium risk of failure as well.
+dt_alarm_med = merged_data[delta > delta_med]
+dt_alarm_high = merged_data[delta > delta_high]# Assumption: Filter both medium and high risk because high risk instances imply having a medium risk of failure as well.
 
-conversion_factor <- 24/dt_alarm_med$daily_sales_machine
+annual_perc_incr <- function(x, delta_x) {
+conversion_factor <- 24/x$daily_sales_machine
+x[, threshold_hours:=delta_x*conversion_factor]
+x[, threshold_hours_fixed := threshold_hours + 1.5]  # The 1.5 stands for the average time it takes to fix a machine.
+x[, delta_fixed:= threshold_hours_fixed * (1/(24/daily_sales_machine))]
+x[, won_sales := failure*(delta-delta_fixed)]
+add_rev = sum(x$won_sales*1.7) # Additional revenue of the EWS for at least medium risk alarms.
+sys_cost = 10*(nrow(x[failure == 0])) # Cost of the system
+vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10 # Cost of current system per year (2.2 false alarm per machine per YEAR)
+annual_profit_incr = 4*(add_rev - vendex_cost_prev) - sys_cost # As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
+perc_incr = (annual_profit_incr/(nrow(merged_data)*1.7*4))*100 # Again, we have to multiply the denominator by 4 so that we receive the annual profit increase in percentage.
+return(perc_incr)
+}
 
-dt_alarm_med[, threshold_hours:=delta_med*conversion_factor]
-
-dt_alarm_med[, threshold_hours_fixed := threshold_hours + 1.5] # The 1.5 stands for the average time it takes to fix a machine.
-
-dt_alarm_med[, delta_fixed:= threshold_hours_fixed * (1/(24/daily_sales_machine))]
-
-dt_alarm_med[, won_sales := failure*(delta-delta_fixed)]
-
-add_rev = sum(dt_alarm_med$won_sales*1.7) # 
-
-# Cost of the system
-sys_cost = 10*(nrow(dt_alarm_med[failure == 0]))
-
-# Cost of current system per year
-vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10
-
-# The profit increase as a % of the total profit can be estimated as the profit increase / (margin_per_item * number_of_transactions) 
-# As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
-annual_profit_incr = 4*(add_rev - vendex_cost_prev) - sys_cost
-
-# Again, we have to multiply the denominator by 4 so that we receive the annual profit increase in percentage.
-perc_incr = annual_profit_incr/(nrow(merged_data)*1.7*4)
-```
+## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
+annual_perc_incr(dt_alarm_med, delta_med)
 
 ## ii. And if we set the EWS only with the high-risk alarms?
-```{r}
-
+annual_perc_incr(dt_alarm_high, delta_high)
 ```
+If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 0.3895761%.
+Applying an EWS for high risk alarms only we forecast an increase in revenue of 0.2217171%.
