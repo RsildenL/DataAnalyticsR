@@ -1768,7 +1768,9 @@ curve(prob, from = 0, to = 30, n = 500,
 </div>
 <div id="c-alarms" class="section level3">
 <h3>c) Alarms</h3>
-<p>Let us create alarms with two levels of priority: med-risk and high-risk. Med-risk alarms will fire when the probability of failure is &gt;=60% and High-risk when that probability is &gt;=80%. #### i) The threshold delta for each alarm to fire</p>
+<p>Let us create alarms with two levels of priority: med-risk and high-risk. Med-risk alarms will fire when the probability of failure is &gt;=60% and High-risk when that probability is &gt;=80%.</p>
+<div id="i-the-threshold-delta-for-each-alarm-to-fire" class="section level4">
+<h4>i) The threshold delta for each alarm to fire</h4>
 <pre class="r"><code>f = function(x){1/(1+exp(-(b0 + X1*x)))}-0.6
 delta_med &lt;- uniroot(f, c(0, 25))$root
 
@@ -1779,7 +1781,8 @@ print(paste(&#39;delta_med: &#39;, round(delta_med, 2)))</code></pre>
 <pre><code>## [1] &quot;delta_med:  12.99&quot;</code></pre>
 <pre class="r"><code>print(paste(&#39;delta_high: &#39;,round(delta_high, 2)))</code></pre>
 <pre><code>## [1] &quot;delta_high:  14.73&quot;</code></pre>
-<p>The medium-risk alarm will be activated when delta &gt;= 12.99263 and the high-risk alarm will be activated when delta &gt;= 14.73126.</p>
+<p>The medium-risk alarm will be activated when delta &gt;= 12.99 and the high-risk alarm will be activated when delta &gt;= 14.73, this is consistent with the plot displayed above.</p>
+</div>
 <div id="ii-number-of-alarms-per-day" class="section level4">
 <h4>ii) Number of alarms per day</h4>
 <pre class="r"><code>merged_data[, &#39;med_risk&#39; := ifelse(delta &gt;= delta_med, 1, 0)]
