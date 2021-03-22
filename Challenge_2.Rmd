@@ -119,8 +119,8 @@ index <- sample(x=1:2, size=nrow(merged_data), replace = TRUE, prob=c(0.7, 0.3))
 train <- merged_data[index == 1, ] 
 test <- merged_data[index == 2, ]
 
-message('Percent of failures in train set: ', round(prop.table(table(train$failure))[2],4))
-message('Percent of failures in train set: ', round(prop.table(table(test$failure))[2],4))
+print(paste('Percent of failures in train set: ', round(prop.table(table(train$failure))[2],4)))
+print(paste('Percent of failures in train set: ', round(prop.table(table(test$failure))[2],4)))
 ```
 As noted above, the dataset is highly imbalanced regarding the target variable "failure", so it is important to keep a similar distribution of failure in the test and training set. 
 
@@ -138,8 +138,8 @@ What’s the AUC, a measure of quality, of the model you have built on the train
 auc_train <- auc(train$failure, m$fitted.values)
 auc_test <- auc(test$failure, m_predictions)
 
-message('AUC of model on the training set: ', round(auc_train,4))
-message('AUC of model on the test set: ', round(auc_test,4))
+print(paste('AUC of model on the training set: ', round(auc_train,4)))
+print(paste('AUC of model on the test set: ', round(auc_test,4)))
 ```
 The area under the curve of the training and test set are rather high and close to each other. This is a sign that the model is rather good at predicting machine failures and that it is not overfitted on the training set. 
 
@@ -170,7 +170,6 @@ delta_med <- uniroot(f, c(0, 25))$root
 g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
-#ERROR?
 print(paste('delta_med: ', round(delta_med, 2)))
 print(paste('delta_high: ',round(delta_high, 2)))
 ```
@@ -184,8 +183,8 @@ merged_data[, 'high_risk' := ifelse(delta >= delta_high, 1, 0)]
 average_per_day_med <- sum(merged_data$med_risk)/uniqueN(merged_data$date)
 average_per_day_high <- sum(merged_data$high_risk)/uniqueN(merged_data$date)
 
-message('Avg. number of medium-risk alarms per day: ', round(average_per_day_med,2))
-message('Avg. number of high-risk alarms per day: ', round(average_per_day_high,2))
+print(paste('Avg. number of medium-risk alarms per day: ', round(average_per_day_med,2)))
+print(paste('Avg. number of high-risk alarms per day: ', round(average_per_day_high,2)))
 ```
 
 #### iii) Percentage of false alarms
@@ -193,8 +192,8 @@ message('Avg. number of high-risk alarms per day: ', round(average_per_day_high,
 med_false_alarm <- merged_data[med_risk == 1, (1-mean(failure)),]*100
 high_false_alarm <- merged_data[high_risk == 1, (1-mean(failure)),]*100
 
-message('Percentage of medium-risk alarms that are false alarms: ', round(med_false_alarm, 2))
-message('Percentage of high-risk alarms that are false alarms: ', round(high_false_alarm, 2))
+print(paste('Percentage of medium-risk alarms that are false alarms: ', round(med_false_alarm, 2)))
+print(paste('Percentage of high-risk alarms that are false alarms: ', round(high_false_alarm, 2)))
 ```
 
 ### d) Profit impact
@@ -219,10 +218,10 @@ return(perc_incr)
 }
 
 ## i. If we set the EWS only with the med-risk alarms, what is the annual profit we will generate vs the current system as a % of the total profit? [For simplicity, consider the total profit to be the margin per item times the number of items in the period]
-message('Average annual percentage increase in revenue for med-risk EWS: ', round(annual_perc_incr(dt_alarm_med, delta_med),4))
+print(paste('Average annual percentage increase in revenue for med-risk EWS: ', round(annual_perc_incr(dt_alarm_med, delta_med),4)))
 
 ## ii. And if we set the EWS only with the high-risk alarms?
-message('Average annual percentage increase in revenue for high-risk EWS: ', round(annual_perc_incr(dt_alarm_high, delta_high),4))
+print(paste('Average annual percentage increase in revenue for high-risk EWS: ', round(annual_perc_incr(dt_alarm_high, delta_high),4)))
 ```
 If we configure an EWS for medium risk alarms instead of relying on the current system we estimate an increase in revenue of 1.52%.
 Applying an EWS for high risk alarms only we forecast an increase in revenue of 1.49%. We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher. 
