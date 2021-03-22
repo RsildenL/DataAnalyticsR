@@ -179,6 +179,7 @@ average_per_day_high <- sum(merged_data$high_risk)/uniqueN(merged_data$date)
 print(paste('Avg. number of medium-risk alarms per day: ', round(average_per_day_med,2)))
 print(paste('Avg. number of high-risk alarms per day: ', round(average_per_day_high,2)))
 ```
+The average number of medium-risk alarms fired per day is 41.5 and the average number of high-risk alarms fired per day is 27.82.
 
 #### iii) What % of these will be “false alarms” i.e. failure variable is equal to 0, for each level of priority?
 ```{r}
@@ -188,6 +189,7 @@ high_false_alarm <- merged_data[high_risk == 1, (1-mean(failure)),]*100
 print(paste('Percentage of medium-risk alarms that are false alarms: ', round(med_false_alarm, 2)))
 print(paste('Percentage of high-risk alarms that are false alarms: ', round(high_false_alarm, 2)))
 ```
+20.67% of the medium-risk alarms fired are going to be false alarms and 8.99% of the fired high-risk alarms are going to be false alarms.
 
 ### d) Profit impact
 In this exercise we will estimate the profit impact of our EWS system vs the current system:
