@@ -205,7 +205,7 @@ x[, won_sales := failure*(delta-delta_fixed)]
 add_rev = sum(x$won_sales*1.7) # Additional revenue of the EWS for at least medium risk alarms.
 sys_cost = 10*(nrow(x[failure == 0])) # Cost of the system
 vendex_cost_prev = uniqueN(merged_data$machine)*2.2*10 # Cost of current system per year (2.2 false alarm per machine per YEAR)
-annual_profit_incr = 4*(add_rev - sys_cost ) - vendex_cost_prev # As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase.
+annual_profit_incr = 4*(add_rev - sys_cost ) + vendex_cost_prev # As we are only given data from Jan 1st to April 1st we have to multiply our estimated profit increase by 4 to obtain the actual annual profit increase. The cost of the old system is added to reflect the actual difference in revenue between the systems accounting for the costs of either one. 
 perc_incr = (annual_profit_incr/(nrow(merged_data)*1.7*4))*100 # Again, we have to multiply the denominator by 4 so that we receive the annual profit increase in percentage.
 return(perc_incr)
 }
