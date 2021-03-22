@@ -77,10 +77,6 @@ Use this auxiliary table to attach to every row of the transactional data table 
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 head(machine_daily_average)
-
-
-#check if the numbers are correct (compare with other teams)
-#comment on distribution of daily sales etc. 
 ```
 The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items and the maximum is 56 items, while most of the machines have average daily sales between 7 and 14 items.
 
@@ -134,7 +130,7 @@ The logistic regression results in a intercept of -6.9 and a delta coefficient o
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
-```{r, echo=FALSE}
+```{r, warning=FALSE}
 auc_train <- auc(train$failure, m$fitted.values)
 auc_test <- auc(test$failure, m_predictions)
 
