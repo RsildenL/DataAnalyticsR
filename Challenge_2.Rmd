@@ -48,7 +48,7 @@ merged_data[is.na(failure), failure :=0]
 summary(merged_data)
 dim(merged_data)
 ```
-Merging the two datasets results in a data table of 1,840,477 observations and 6 variables, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the date feature that we have observations from 2017-01-02 until 2017-04-01. 
+Merging the two datasets results in a data table of 1,840,477 observations and 6 variables, which will be used in the following computations. 'Failure' is '1' on the first sale of a machine after a broken period, and '0' otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the 'date' feature that we have observations from 2017-01-02 until 2017-04-01. 
 
 ## 2. Create "last_vend" variable
 In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
@@ -57,7 +57,7 @@ Hint: Remember you can use the function “shift” once the data is ordered acc
 merged_data <- merged_data[order(machine, timestamp)]
 merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]
 ```
-A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, the last_vend is reported as NA (no previous data).
+A 'last_vend' variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, the 'last_vend' is reported as NA (no previous data).
 
 
 ## 3. Create "deltahours" variable
@@ -68,7 +68,7 @@ summary(merged_data$deltahours)
 ```
 There are 2495 NA's, which correspond to the first instance of each machine, as there is no previous timestamp available.
 
-The median of 0.59 indicates that half of the machines have on average a transaction every 35 minutes, while the 3rd quantile shows that 75% of the machines have transactions every 2.76 hours. The maximum however shows that there is a machine with an average of 66 days (1576.13) between the transactions.
+The median of 0.59 indicates that half of the machines have a transaction every 35 minutes on average, while the 3rd quantile shows that 75% of the machines have transactions every 2.76 hours. However, the maximum shows that there is a machine with an average of 66 days (1576.13) between the transactions.
 
 ## 4. Create auxiliary table called "machine_daily_average"
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
@@ -82,7 +82,7 @@ head(machine_daily_average)
 #check if the numbers are correct (compare with other teams)
 #comment on distribution of daily sales etc. 
 ```
-The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items and the maximum is 56 items, while most of the machines have on average daily sales between 7 and 14 items. 
+The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items and the maximum is 56 items, while most of the machines have average daily sales between 7 and 14 items.
 
 ```{r}
 merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
@@ -97,7 +97,7 @@ Create a new variable called “delta” in the transactional data table contain
 merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),]
 summary(merged_data$delta)    
 ```
-The delta variable is the amount of "missed sales" if the machine was selling at a constant rate. (24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours by this will tell us which was our specific purchase frequency compared to the average purchase frequency of that particular machine.
+The delta variable is the amount of "missed sales" if the machine was selling at a constant rate. 24/daily_sales_machine tells us that on average this much time is spent between buying two consecutive items. So by dividing deltahours by this value, we learn how high our specific purchase frequency was compared to the average purchase frequency of this particular machine.
 
 While most observations have a delta below 1.20, the maximum is 610, indicating that there is at least one machine with a high amount of missed sales.
 
