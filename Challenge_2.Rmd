@@ -134,7 +134,7 @@ The logistic regression results in a intercept of -6.9 and a delta coefficient o
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
-```{r}
+```{r, echo=FALSE}
 auc_train <- auc(train$failure, m$fitted.values)
 auc_test <- auc(test$failure, m_predictions)
 
@@ -171,8 +171,8 @@ g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
 #ERROR?
-message('delta_med: ', round(delta_med, 2)
-message('delta_high: ',round(delta_high, 2)
+print(paste('delta_med: ', round(delta_med, 2)))
+print(paste('delta_high: ',round(delta_high, 2)))
 ```
 The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
 
