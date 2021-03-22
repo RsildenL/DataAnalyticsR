@@ -48,7 +48,7 @@ merged_data[is.na(failure), failure :=0]
 summary(merged_data)
 dim(merged_data)
 ```
-Merging the two datasets results in a 1,840,477 observations of 6 variables, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the date feature that we have observation from 2017-01-02 until 2017-04-01. 
+Merging the two datasets results in a data table of 1,840,477 observations and 6 variables, which will be used in the following computations. Failure is 1 on the first sale of a machine after a broken period, and 0 otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the date feature that we have observations from 2017-01-02 until 2017-04-01. 
 
 ## 2. Create "last_vend" variable
 In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
@@ -57,7 +57,7 @@ Hint: Remember you can use the function “shift” once the data is ordered acc
 merged_data <- merged_data[order(machine, timestamp)]
 merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]
 ```
-A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, an the last_vend is reported as NA.
+A last_vend variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, the last_vend is reported as NA (no previous data).
 
 
 ## 3. Create "deltahours" variable
@@ -68,7 +68,7 @@ summary(merged_data$deltahours)
 ```
 There are 2495 NA's, which correspond to the first instance of each machine, as there is no previous timestamp available.
 
-The median of 0.59 indicated that half of the machines has on average transaction every 35 minute, while the 3rd quantile shows that 75% of the machines has transactions every 2.76 hour. The maximum however shows that there is a machine with 66 days (1576.13) on average between the transactions.
+The median of 0.59 indicates that half of the machines have on average a transaction every 35 minutes, while the 3rd quantile shows that 75% of the machines have transactions every 2.76 hours. The maximum however shows that there is a machine with an average of 66 days (1576.13) between the transactions.
 
 ## 4. Create auxiliary table called "machine_daily_average"
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
@@ -82,13 +82,13 @@ head(machine_daily_average)
 #check if the numbers are correct (compare with other teams)
 #comment on distribution of daily sales etc. 
 ```
-The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items, the maximum is 56 items, while most of the machines has on average daily sales between 7 and 14 items. 
+The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items and the maximum is 56 items, while most of the machines have on average daily sales between 7 and 14 items. 
 
 ```{r}
 merged_data <- merge(merged_data, machine_daily_average, by = 'machine', all.x=TRUE)
 summary(merged_data)
 ```
-Including the average daily sales to each of the transaction for the corresponding machine. 
+Including the average daily sales to each of the transactions for the corresponding machine. 
 
 ## 5. Create "delta" variable 
 Create a new variable called “delta” in the transactional data table containing a normalized version of deltahours consisting on the deltahours associated with each sale divided by the average deltahours of each machine i.e. delta = deltahours/(24/daily_sales_machine). The interpretation of delta is the amount of “missed sales” if the machine was selling at a constant rate
@@ -97,9 +97,9 @@ Create a new variable called “delta” in the transactional data table contain
 merged_data$delta <- merged_data[ ,.(delta = as.numeric(deltahours/(24/avg_daily_sales))),]
 summary(merged_data$delta)    
 ```
-The delta variable is the amount of "missed sales" if the machine was selling at a constant rate. (24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours with this will tell us how was our specific purchase frequency compared to average purchase frequency of that particular machine.
+The delta variable is the amount of "missed sales" if the machine was selling at a constant rate. (24/daily_sales_machine) tells us that on an average this much time is spent between buying two consecutive items. So dividing deltahours by this will tell us which was our specific purchase frequency compared to the average purchase frequency of that particular machine.
 
-While most observations have a delta below 1.20, is the maximum 610 indicating that there is at least one machine with high amount of missed sales.
+While most observations have a delta below 1.20, the maximum is 610, indicating that there is at least one machine with a high amount of missed sales.
 
 # Creating the model 
 
@@ -122,7 +122,7 @@ test <- merged_data[index == 2, ]
 message('Percent of failures in train set: ', round(prop.table(table(train$failure))[2],4))
 message('Percent of failures in train set: ', round(prop.table(table(test$failure))[2],4))
 ```
-As noted above is the dataset highly imbalanced regaring the target variable "failure", it is therefore important to keep a similar distribution of failure in the test and training set. 
+As noted above, the dataset is highly imbalanced regarding the target variable "failure", so it is important to keep a similar distribution of failure in the test and training set. 
 
 Logistic regression: 
 ```{r,warning=FALSE}
@@ -130,7 +130,7 @@ m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.om
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
 ```
-The logistic regression results in a intercept of -6.9 and a delta coefficient of 0.56, both highly statistical significant. The positive delta coefficient indicatesthat an increase in delta would inccrease the likelyhood of predicting failure. This makes intuitive sense, since the delta is a measure of missing sales calculated based on the average sales for the machine and time since last salein this machine. 
+The logistic regression results in a intercept of -6.9 and a delta coefficient of 0.56, both highly statistically significant. The positive delta coefficient indicates that an increase in delta would increase the likelihood of predicting failure. This makes sense, since delta is a measure of missing sales calculated based on the average sales for each machine and the time since its last sale. 
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
@@ -141,21 +141,19 @@ auc_test <- auc(test$failure, m_predictions)
 message('AUC of model on the training set: ', round(auc_train,4))
 message('AUC of model on the test set: ', round(auc_test,4))
 ```
-The area under the curve of the training and test set are rather high and close to eachother. This is a sign that the model is rather good at predicting machine failures and that the model is not overfitted on the trainingset. s
+The area under the curve of the training and test set are rather high and close to each other. This is a sign that the model is rather good at predicting machine failures and that it is not overfitted on the training set. 
 
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
 ```{r}
-#range(merged_data$delta, na.rm = TRUE) 
 train$delta <- as.numeric(train$delta) 
 
 b0 <- m$coefficients[1]
 X1 <- m$coefficients[2]
 
-#typeof(m$coefficients)
+
 prob = function(delta) {
   result <- 1/(1+exp(-(b0 + X1*delta)))
-#  print(result)
 }
 curve(prob, from = 0, to = 30, n = 500, 
       xlab = "Delta", 
@@ -172,8 +170,9 @@ delta_med <- uniroot(f, c(0, 25))$root
 g = function(x){1/(1+exp(-(b0 + X1*x)))}-0.8
 delta_high <- uniroot(g, c(0, 25))$root
 
+#ERROR?
 message('delta_med: ', round(delta_med, 2)
-message('delta_high: ',round(delta_high, 2))
+message('delta_high: ',round(delta_high, 2)
 ```
 The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
 
