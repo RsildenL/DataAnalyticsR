@@ -235,6 +235,6 @@ Applying an EWS for high-risk alarms only we forecast an increase in profit of 2
 print(paste('Total annual profit: ',
 round(tot_annual_profit,0)))
 print(paste('Monetary value of 0.03%: ',
-round(tot_annual_profit*0.03,0)))
+round(tot_annual_profit*0.0003,0)))
 ```
-We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher than for only high-risk alarms. This difference seems negligible, but in fact equates to $374,948 making the EWS for med-risk alarms the obvious choice from a business point of view.
+We recommend implementing the medium-risk EWS, as the average annual increase in revenue is 0.03% higher than for only high-risk alarms. This difference seems negligible, but in fact equates to $3749 making the EWS for med-risk alarms the obvious choice from a business point of view.
