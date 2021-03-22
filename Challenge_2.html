@@ -1617,13 +1617,11 @@ summary(merged_data)</code></pre>
 ##                     Mean   :0.006725  
 ##                     3rd Qu.:0.000000  
 ##                     Max.   :1.000000</code></pre>
-<pre class="r"><code>dim(merged_data)</code></pre>
-<pre><code>## [1] 1840477       6</code></pre>
 <p>Merging the two datasets results in a data table of 1,840,477 observations and 6 variables, which will be used in the following computations. ‘Failure’ is ‘1’ on the first sale of a machine after a broken period, and ‘0’ otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the ‘date’ feature that we have observations from 2017-01-02 until 2017-04-01.</p>
 </div>
 <div id="create-last_vend-variable" class="section level2">
 <h2>2. Create “last_vend” variable</h2>
-<p>In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt</p>
+<p>In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine.</p>
 <pre class="r"><code>merged_data &lt;- merged_data[order(machine, timestamp)]
 merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]</code></pre>
 <p>A ‘last_vend’ variable, containing the timestamp of the previous sale of each machine, using the order and shift functions. For the first observations of each of the machines, the ‘last_vend’ is reported as NA (no previous data).</p>
@@ -1640,7 +1638,7 @@ summary(merged_data$deltahours)</code></pre>
 </div>
 <div id="create-auxiliary-table-called-machine_daily_average" class="section level2">
 <h2>4. Create auxiliary table called “machine_daily_average”</h2>
-<p>Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.</p>
+<p>Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine.</p>
 <pre class="r"><code>daily_sales &lt;- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average &lt;- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
 head(machine_daily_average)</code></pre>
@@ -1651,8 +1649,6 @@ head(machine_daily_average)</code></pre>
 ## 4:     180        3.575758
 ## 5:     181        5.916667
 ## 6:     182       15.744444</code></pre>
-<pre class="r"><code>#check if the numbers are correct (compare with other teams)
-#comment on distribution of daily sales etc. </code></pre>
 <p>The machine daily average auxiliary table includes the average daily sales for each of the machines. The minimum average daily sales is 2 items and the maximum is 56 items, while most of the machines have average daily sales between 7 and 14 items.</p>
 <pre class="r"><code>merged_data &lt;- merge(merged_data, machine_daily_average, by = &#39;machine&#39;, all.x=TRUE)
 summary(merged_data)</code></pre>
@@ -1692,9 +1688,6 @@ summary(merged_data$delta)    </code></pre>
 <p>The delta variable is the amount of “missed sales” if the machine was selling at a constant rate. 24/daily_sales_machine tells us that on average this much time is spent between buying two consecutive items. So by dividing deltahours by this value, we learn how high our specific purchase frequency was compared to the average purchase frequency of this particular machine.</p>
 <p>While most observations have a delta below 1.20, the maximum is 610, indicating that there is at least one machine with a high amount of missed sales.</p>
 </div>
-</div>
-<div id="creating-the-model" class="section level1">
-<h1>Creating the model</h1>
 <div id="linear-logistic-regression" class="section level2">
 <h2>6. Linear logistic regression</h2>
 <p>Select 30% of the machines in the transactional data for testing and 70% of the machines for training and train a linear logistic regression model called “m” to predict whether a machine has a failure as a function of variable delta. What is the value of the intercept and the coefficient accompanying variable delta?</p>

@@ -95,8 +95,6 @@ The delta variable is the amount of "missed sales" if the machine was selling at
 
 While most observations have a delta below 1.20, the maximum is 610, indicating that there is at least one machine with a high amount of missed sales.
 
-# Creating the model 
-
 ## 6. Linear logistic regression 
 Select 30% of the machines in the transactional data for testing and 70% of the machines for training and train a linear logistic regression model called “m” to predict whether a machine has a failure as a function of variable delta. What is the value of the intercept and the coefficient accompanying variable delta?
 
@@ -156,6 +154,7 @@ curve(prob, from = 0, to = 30, n = 500,
 
 ### c) Alarms 
 Let us create alarms with two levels of priority: med-risk and high-risk. Med-risk alarms will fire when the probability of failure is >=60% and High-risk when that probability is >=80%.
+
 #### i) The threshold delta for each alarm to fire
 ```{r }
 f = function(x){1/(1+exp(-(b0 + X1*x)))}-0.6
@@ -167,7 +166,7 @@ delta_high <- uniroot(g, c(0, 25))$root
 print(paste('delta_med: ', round(delta_med, 2)))
 print(paste('delta_high: ',round(delta_high, 2)))
 ```
-The medium-risk alarm will be activated when delta >= 12.99263 and the high-risk alarm will be activated when delta >= 14.73126.
+The medium-risk alarm will be activated when delta >= 12.99 and the high-risk alarm will be activated when delta >= 14.73, this is consistent with the plot displayed above.
 
 #### ii) Number of alarms per day
 ```{r,warning=FALSE}
