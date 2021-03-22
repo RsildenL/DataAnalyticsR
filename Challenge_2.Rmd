@@ -151,6 +151,7 @@ curve(prob, from = 0, to = 30, n = 500,
       xlab = "Delta", 
       ylab = "Probability of Failure")
 ```
+We can see in the plot how the presence of failure in Vendex's machines is highly determined in the range in which delta is between 5 and 20, as the probability of failure spikes as we get close to the latter. Any machine with a delta > 20 will have a probability failure notably close to 1.
 
 ### c) Alarms 
 Let us create alarms with two levels of priority: med-risk and high-risk. Med-risk alarms will fire when the probability of failure is >=60% and High-risk when that probability is >=80%.
