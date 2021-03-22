@@ -46,13 +46,11 @@ merged_data <- merge(transaction_data, machine_failures,
 
 merged_data[is.na(failure), failure :=0]
 summary(merged_data)
-dim(merged_data)
 ```
 Merging the two datasets results in a data table of 1,840,477 observations and 6 variables, which will be used in the following computations. 'Failure' is '1' on the first sale of a machine after a broken period, and '0' otherwise. An initial inspection of the features shows that the dataset is highly imbalanced regarding observed failures, with a mean of only 0.006. We can also see from the 'date' feature that we have observations from 2017-01-02 until 2017-04-01. 
 
 ## 2. Create "last_vend" variable
-In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine
-Hint: Remember you can use the function “shift” once the data is ordered according to machine and date with function “order” i.e. dt = dt[order(x,y)] where x and y are column names of dt
+In the transactional data table, create a variable called “last_vend” containing the timestamp of the previous sale of each machine.
 ```{r last_vend}
 merged_data <- merged_data[order(machine, timestamp)]
 merged_data[, last_vend := shift(timestamp, 1), by=.(machine)]
@@ -72,7 +70,7 @@ The median of 0.59 indicates that half of the machines have a transaction every 
 
 ## 4. Create auxiliary table called "machine_daily_average"
 Create an auxiliary data table called “machine_daily_average” with the average daily sales per machine. 
-Use this auxiliary table to attach to every row of the transactional data table the the average daily sales per machine. You can do this by doing a merge.
+
 ```{r}
 daily_sales <- merged_data[ , .(items_machine_day = uniqueN(timestamp)), by = .(machine, date)]
 machine_daily_average <- daily_sales[ ,.(avg_daily_sales = mean(items_machine_day)), by = machine]
