@@ -102,7 +102,7 @@ Select 30% of the machines in the transactional data for testing and 70% of the 
 merged_data <- merged_data %>% drop_na()
 summary(merged_data)
 ```
-Given that we have 1,840,477 observations in our dataset, we have decided to drop the 2495 NA values. These NA values resulted from the shift in data from question 2.
+Given that we have 1,840,477 observations in our dataset, we have decided to drop the 2495 NA values. These NA values resulted from the shift in data from question 2 and removing them still leaves us with a sufficient amount of data.
 
 Test train split: 
 ```{r, warning=FALSE}
@@ -114,7 +114,7 @@ test <- merged_data[index == 2, ]
 print(paste('Percent of failures in train set: ', round(prop.table(table(train$failure))[2],4)))
 print(paste('Percent of failures in train set: ', round(prop.table(table(test$failure))[2],4)))
 ```
-As noted above, the dataset is highly imbalanced regarding the target variable "failure", so it is important to keep a similar distribution of failure in the test and training set. 
+As mentioned above, the dataset is highly imbalanced regarding the target variable "failure", so it is important to keep a similar distribution of failure in the test and training set. 
 
 Logistic regression: 
 ```{r,warning=FALSE}
@@ -122,7 +122,7 @@ m <- glm(failure ~ delta,  data = train, family = "binomial",  na.action = na.om
 m_predictions <- predict(m, newdata = test, type = "response")
 summary(m)$coefficients
 ```
-The logistic regression results in a intercept of -6.9 and a delta coefficient of 0.56, both highly statistically significant. The positive delta coefficient indicates that an increase in delta would increase the likelihood of predicting failure. This makes sense, since delta is a measure of missing sales calculated based on the average sales for each machine and the time since its last sale. 
+The logistic regression yields an intercept of -6.9 and a delta coefficient of 0.56, both highly statistically significant. The positive delta coefficient indicates that an increase in delta would increase the probability of predicting 'failure'. This makes sense, since delta is a measure of missing sales calculated based on the average sales for each machine and the time since its last sale.
 
 ### a) AUC 
 What’s the AUC, a measure of quality, of the model you have built on the train set? and on test set?
@@ -133,7 +133,7 @@ auc_test <- auc(test$failure, m_predictions)
 print(paste('AUC of model on the training set: ', round(auc_train,4)))
 print(paste('AUC of model on the test set: ', round(auc_test,4)))
 ```
-The area under the curve of the training and test set are rather high and close to each other. This is a sign that the model is rather good at predicting machine failures and that it is not overfitted on the training set. 
+The area under the curve of the training and test set are rather high and close to each other. This is an indication that the model is rather good at predicting machine failures and that it is not overfitted on the training set.
 
 ### b) Plot
 Plot the function of probability of failure with respect to delta to gain intuition
