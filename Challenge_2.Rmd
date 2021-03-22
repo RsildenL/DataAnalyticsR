@@ -191,6 +191,8 @@ print(paste('Percentage of high-risk alarms that are false alarms: ', round(high
 
 ### d) Profit impact
 In this exercise we will estimate the profit impact of our EWS system vs the current system:
+
+We created a function that outputs the annual profit we will generate vs the current system as a % of the total profit. The function takes two input parameters: 'x' (the dataframe filtered for either med-risk or high-risk deltas) and 'delta_x' (the delta for either high-risk or med-risk).
 ```{r}
 # First, we filter by the instances that we classified as values with at least a medium risk of failure.
 dt_alarm_med = merged_data[delta >= delta_med]
