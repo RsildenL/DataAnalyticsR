@@ -199,7 +199,7 @@ dt_alarm_high = merged_data[delta >= delta_high]# Assumption: Filter both medium
 annual_perc_incr <- function(x, delta_x) {
 conversion_factor <- 24/x$avg_daily_sales
 x[, threshold_hours:=delta_x*conversion_factor]
-x[, threshold_hours_fixed := threshold_hours + 1.5]  # The 1.5 stands for the average time it takes to fix a machine.
+x[, threshold_hours_fixed := threshold_hours + 1.5]  # 1.5 represents the average time it takes to fix a machine.
 x[, delta_fixed:= threshold_hours_fixed * (1/(24/avg_daily_sales))]
 x[, won_sales := failure*(delta-delta_fixed)]
 add_rev = sum(x$won_sales*1.7) # Additional revenue of the EWS for at least medium risk alarms.
