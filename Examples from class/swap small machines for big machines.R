@@ -16,8 +16,8 @@ library(lubridate)
 library(gbm)
 
 # Data loading ------------------------------------------------------------
-td = fread('Challenges/DATA/final_data/transactional_data.csv')
-md = fread('Challenges/DATA/final_data/machine_data.csv')
+td = fread('Data/transactional_data.csv')
+md = fread('Data/machine_failures.csv')
 
 # Model data creation -----------------------------------------------------
 daily_sales_dt = td[,.(daily_sales = .N/uniqueN(date)),by=machine]

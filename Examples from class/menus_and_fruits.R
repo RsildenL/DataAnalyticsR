@@ -14,8 +14,8 @@ library(data.table)
 library(lubridate)
 
 # Data loading ------------------------------------------------------------
-td = fread('./MIBA 21/CHALLENGES/final_data/transactional_data.csv')
-md = fread('./MIBA 21/CHALLENGES/final_data/machine_data.csv')
+td = fread('Data/transactional_data.csv')
+md = fread('Data/machine_failures.csv')
 
 # Fix variable formats ----------------------------------------------------
 td[,class(timestamp)]
