@@ -16,8 +16,8 @@ library(lubridate)
 library(gbm)
 
 # Data loading ------------------------------------------------------------
-td = fread('Data/transactional_data.csv')
-md = fread('Data/machine_failures.csv')
+td = fread('GitHub/DataAnalyticsR/Data/transactional_data.csv')
+md = fread('GitHub/DataAnalyticsR/Data/machine_data.csv')
 
 # Model data creation -----------------------------------------------------
 daily_sales_dt = td[,.(daily_sales = .N/uniqueN(date)),by=machine]
@@ -65,7 +65,8 @@ model_vars = c('isna_train_AvgDailyPassengers',
 model = glm(daily_sales~., data=train[,c(model_vars,'daily_sales'),with=F],family='gaussian')
 
 data[,pred_sales:=predict(model,data)]
-data[,.(ratio_sales_vs_benchmark = mean(daily_sales/pred_sales)),by=small_machine][,ratio_sales_vs_benchmark[small_machine==0] / ratio_sales_vs_benchmark[small_machine==1]] # Big machines sell ~20% more than small machines at a similar location
+data[,.(ratio_sales_vs_benchmark = mean(daily_sales/pred_sales)),by=small_machine][,ratio_sales_vs_benchmark[small_machine==0] / ratio_sales_vs_benchmark[small_machine==1]] 
+        # Big machines sell ~20% more than small machines at a similar location
 
 
 # Alternative: calculate the big machine boost with a GBM -----------------
@@ -106,15 +107,15 @@ big_machines = data[small_machine==0]
 big_machines[,sales_if_small:=daily_sales*(1/1.2)]
 
 small_machines[,increase:=sales_if_big - daily_sales]
-big_machines[,decrease:=daily_sales - sales_if_smal]l
+big_machines[,decrease:=daily_sales - sales_if_small]
 
 # Paring small and big machines
 small_machines[,.N] # 959
 big_machines[,.N] # 1536
 # we can make at most 959 pairings
 
-a = big_machines[order(decrease)][,.(machine,decrease)][1:959] # ordered by machines loosing the least
-b = small_machines[order(-increase)][,.(machine,increase)] # ordered by machines winning the most
+a = big_machines[order(decrease)][,.(big_machine = machine,decrease)][1:959] # ordered by machines loosing the least
+b = small_machines[order(-increase)][,.(small_machine = machine,increase)] # ordered by machines winning the most
 
 c = cbind(a,b) # pairing
 c[,profit:= increase - decrease]
