@@ -11,11 +11,11 @@ merged_data <- merged_data %>% drop_na()
 
 #margin wo/ cashless
 
-daily_margin <- merged_data[ , .(margin=price/(1+tax_rate) - cost), by = .(machine, category)]  #is this the entire margin per machine?
+daily_margin <- merged_data[ , margin:=as.numeric(price/(1+tax_rate) - cost), by = .(machine, category)]  #is this the entire margin per machine?
 
-daily_sales <- merged_data[ , items_machine_day:= uniqueN(timestamp), by = .(machine, category)]
-merge
-total_margin_per_machine<-merged_data[ , .(total_margin= as.numeric(items_machine_day * margin)), by = .(machine, category)]
+daily_sales <- merged_data[ , items_machine_day:= as.numeric(uniqueN(timestamp)), by = .(machine, category)]
+
+total_margin_per_machine<-merged_data[ , .(total_margin=items_machine_day * margin), by = .(machine, category)]
 sum(total_margin_per_machine$total_margin)
 
 #margin w/ cashless
@@ -31,12 +31,28 @@ sum(total_margin_per_machine$total_margin)
 
 daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, category)]
 number_machines=uniqueN(merged_data$machine)
-daily_margin_cl <- merged_data[ , margin_cl:=price/(1+tax_rate) - cost+ (120/365), by = .(machine, category)]
+daily_margin_cl <- merged_data[ , margin_cl:=price/(1+tax_rate) - cost-(120/365), by = .(machine, category)] #WTF just use price
 
 total_margin_per_machine_cl<-merged_data[ , .(total_margin_cl= as.numeric(items_machine_day_cl * margin_cl)), by = .(machine, category)]
 sum(total_margin_per_machine_cl$total_margin_cl)
 
-#where does it make sense to immplement
 # increase in revenue
 profit_diff<- sum(total_margin_per_machine_cl$total_margin_cl) -sum(total_margin_per_machine$total_margin) #should I make a table to see where is the biggest increase? should I apply diff rates per location?
 percentage_increase<- profit_diff/sum(total_margin_per_machine$total_margin)
+
+
+#with the other cost structure
+daily_margin_cl1 <- merged_data[ , margin_cl1:=price/(1+tax_rate) - cost-price*0.03, by = .(machine, category)]
+daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, category)]
+
+
+total_margin_per_machine_cl1<-merged_data[ , .(total_margin_cl1= as.numeric(items_machine_day_cl * margin_cl1)), by = .(machine, category)]
+sum(total_margin_per_machine_cl1$total_margin_cl1)
+
+# increase in revenue
+profit_diff1<- sum(total_margin_per_machine_cl1$total_margin_cl1) -sum(total_margin_per_machine$total_margin) 
+percentage_increase1<- profit_diff1/sum(total_margin_per_machine$total_margin)
+
+#how many years to achieve break-even with the 1st cost structure?
+
+
