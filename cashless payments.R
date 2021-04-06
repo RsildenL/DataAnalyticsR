@@ -11,15 +11,10 @@ merged_data <- merge(merged_data, machine_data, by= "machine")
 merged_data <- merged_data %>% drop_na()
 
 #margin wo/ cashless
-daily_sales <- merged_data[ , items_machine_day:= as.numeric(uniqueN(timestamp)), by = .(machine, date)]
+daily_profit<- product_data[, margin:=(price/(1+tax_rate) - cost)]
+tdp = merge(transaction_data,daily_profit,by='product_name',all.x=T)
+profit<-sum(tdp$margin)
 
-daily_revenue<-merged_data[, revenue:= items_machine_day *price, by = .(machine, date)]
-
-daily_cost<- merged_data[, costs:= items_machine_day * cost, by= .(machine, date)]
-
-daily_profit<- merged_data[, margin:=(price/(1+tax_rate)*items_machine_day) - cost*items_machine_day, by=.(machine, date)]
-
-profit<- sum(daily_profit$margin)
 
 #margin w/ cashless
 
@@ -32,36 +27,48 @@ profit<- sum(daily_profit$margin)
 #"Kids dont have cards"
 #cost is divided by 365 to see daily
 
-daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, date)]
-
-daily_profit_cl<- merged_data[, margin_cl:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl), by=.(machine, date)]
-
+#daily_profit<- product_data[, margin:=(price/(1+tax_rate) - cost)]
+#tdp = merge(transaction_data,daily_profit,by='product_name',all.x=T)
 cost_cl_hardware<- uniqueN(merged_data$machine) * 240
 
-profit_cl<-sum(daily_profit_cl$margin_cl)-cost_cl_hardware
 
-profit_diff<- profit_cl-profit
-percentage_increase_cl<- profit_diff/profit
+n_products<-tdp[,.N, by= product_name]
+n_products[, n:= 1.22*N]
+
+cl=merge(n_products,tdp[,.(product_name,margin)],by='product_name', all.x = T)
+cl=cl[!duplicated(product_name),.(product_name,N,n,margin,new_added_margin=(n-N)*margin), ]
+
+profit_cl<- sum(cl$new_added_margin)-cost_cl_hardware
+percentage_increase_cl<- profit_cl/profit
 
 # next quarter
-daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine,date)]
-
-daily_profit_cl<- merged_data[, margin_cl:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl), by=.(machine, date)]
-
-profit_cl<-sum(daily_profit_cl$margin_cl)
-
-# increase in revenue
-profit_diff<- profit_cl-profit
-avg_percentage_increase_cl<- profit_diff/profit
-
+n_products<-tdp[,.N, by= product_name]
+n_products[, n:= 1.22*N]
+cl=merge(n_products,tdp[,.(product_name,margin)],by='product_name', all.x = T)
+cl=cl[!duplicated(product_name),.(product_name,N,n,margin,new_added_margin=(n-N)*margin), ]
+profit_cl<- sum(cl$new_added_margin)
+percentage_increase_cl<- profit_cl/profit
 
 #with the other cost structure
 
-daily_sales_cl_fee<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine,date)]
+#daily_sales_cl_fee<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine,date)]
 
-daily_profit_cl_fee<- merged_data[, margin_cl_fee:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl)- (0.03*price/(1+tax_rate)*items_machine_day_cl), by=.(machine, date)]
+#daily_profit_cl_fee<- merged_data[, margin_cl_fee:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl)- (0.03*price/(1+tax_rate)*items_machine_day_cl), by=.(machine, date)]
 
-profit_cl_fee<- sum(daily_profit_cl_fee$margin_cl_fee)
+#profit_cl_fee<- sum(daily_profit_cl_fee$margin_cl_fee)
+
+daily_profit_fee<- product_data[, margin_fee:=(price/(1+tax_rate) - cost-0.03*price)]
+tdp_fee = merge(transaction_data,daily_profit,by='product_name',all.x=T)
+
+
+n_products<-tdp_fee[,.N, by= product_name]
+n_products[, n:= 1.22*N]
+cl_fee=merge(n_products,tdp_fee[,.(product_name,margin_fee)],by='product_name', all.x = T)
+cl_fee=cl_fee[!duplicated(product_name),.(product_name,N,n,margin_fee,new_added_margin_fee=(n-N)*margin_fee), ]
+
+profit_cl_fee<- sum(cl_fee$new_added_margin_fee)
+percentage_increase_cl_fee<- profit_cl_fee/profit
+
 
 
 # increase in revenue
