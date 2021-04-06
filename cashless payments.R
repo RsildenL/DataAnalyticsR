@@ -14,6 +14,7 @@ merged_data <- merged_data %>% drop_na()
 daily_profit<- product_data[, margin:=(price/(1+tax_rate) - cost)]
 tdp = merge(transaction_data,daily_profit,by='product_name',all.x=T)
 profit<-sum(tdp$margin)
+profit_annual<-profit*4
 
 
 #margin w/ cashless
@@ -31,11 +32,14 @@ n_products<-tdp[,.N, by= product_name]
 n_products[, n:= 1.22*N]
 cl=merge(n_products,tdp[,.(product_name,margin)],by='product_name', all.x = T)
 cl=cl[!duplicated(product_name),.(product_name,N,n,margin,new_added_margin=(n-N)*margin), ]
-profit_cl<- sum(cl$new_added_margin)-cost_cl_hardware
-profit_cl+profit
-percentage_increase_cl<- profit_cl/profit
+profit_cl_Q1<- sum(cl$new_added_margin)-cost_cl_hardware
+abs_profit_Q1<-profit_cl_Q1+profit
+percentage_increase_cl_Q1<- profit_cl_Q1/profit
+profit_annual_cl<-profit_cl_Q1+profit+3*(sum(cl$new_added_margin)+profit)
+increase_profit_annual_cl<-profit_cl_Q1+sum(cl$new_added_margin)*3
+percentage_increase_cl_annual<-increase_profit_annual_cl/profit_annual
 
-# next quarter
+# next quarter (dont use)
 n_products<-tdp[,.N, by= product_name]
 n_products[, n:= 1.22*N]
 cl=merge(n_products,tdp[,.(product_name,margin)],by='product_name', all.x = T)
@@ -52,11 +56,14 @@ n_products[, n:= 1.22*N]
 cl_fee=merge(n_products,tdp_fee[,.(product_name,margin_fee)],by='product_name', all.x = T)
 cl_fee=cl_fee[!duplicated(product_name),.(product_name,N,n,margin_fee,new_added_margin_fee=(n-N)*margin_fee), ]
 
-profit_cl_fee<- sum(cl_fee$new_added_margin_fee)
-profit_cl_fee+profit
-percentage_increase_cl_fee<- profit_cl_fee/profit
+profit_cl_fee_Q1<- sum(cl_fee$new_added_margin_fee)
 
+abs_profit_cl_fee_Q1<- profit_cl_fee_Q1+profit
+percentage_increase_cl_fee_Q1<- profit_cl_fee_Q1/profit
 
+abs_profit_cl_fee_annual<-abs_profit_cl_fee_Q1 * 4
+increase_profit_cl_fee_annual<-sum(cl_fee$new_added_margin_fee)*4
+percentage_increase_cl_fee_annual<-(increase_profit_cl_fee_annual)/profit_annual
 
 
 
