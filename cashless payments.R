@@ -1,5 +1,6 @@
 #data
 library(data.table)
+library(tidyverse)
 
 machine_data <- fread("Data/machine_data.csv")
 product_data <- fread("Data/product_data.csv")
@@ -10,13 +11,15 @@ merged_data <- merge(merged_data, machine_data, by= "machine")
 merged_data <- merged_data %>% drop_na()
 
 #margin wo/ cashless
+daily_sales <- merged_data[ , items_machine_day:= as.numeric(uniqueN(timestamp)), by = .(machine, date)]
 
-daily_margin <- merged_data[ , margin:=as.numeric(price/(1+tax_rate) - cost), by = .(machine, category)]  #is this the entire margin per machine?
+daily_revenue<-merged_data[, revenue:= items_machine_day *price, by = .(machine, date)]
 
-daily_sales <- merged_data[ , items_machine_day:= as.numeric(uniqueN(timestamp)), by = .(machine, category)]
+daily_cost<- merged_data[, costs:= items_machine_day * cost, by= .(machine, date)]
 
-total_margin_per_machine<-merged_data[ , .(total_margin=items_machine_day * margin), by = .(machine, category)]
-sum(total_margin_per_machine$total_margin)
+daily_profit<- merged_data[, margin:=(price/(1+tax_rate)*items_machine_day) - cost*items_machine_day, by=.(machine, date)]
+
+profit<- sum(daily_profit$margin)
 
 #margin w/ cashless
 
@@ -29,30 +32,43 @@ sum(total_margin_per_machine$total_margin)
 #"Kids dont have cards"
 #cost is divided by 365 to see daily
 
-daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, category)]
-number_machines=uniqueN(merged_data$machine)
-daily_margin_cl <- merged_data[ , margin_cl:=price/(1+tax_rate) - cost-(120/365), by = .(machine, category)] #WTF just use price
+daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, date)]
 
-total_margin_per_machine_cl<-merged_data[ , .(total_margin_cl= as.numeric(items_machine_day_cl * margin_cl)), by = .(machine, category)]
-sum(total_margin_per_machine_cl$total_margin_cl)
+daily_profit_cl<- merged_data[, margin_cl:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl), by=.(machine, date)]
+
+cost_cl_hardware<- uniqueN(merged_data$machine) * 240
+
+profit_cl<-sum(daily_profit_cl$margin_cl)-cost_cl_hardware
+
+profit_diff<- profit_cl-profit
+percentage_increase_cl<- profit_diff/profit
+
+# next quarter
+daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine,date)]
+
+daily_profit_cl<- merged_data[, margin_cl:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl), by=.(machine, date)]
+
+profit_cl<-sum(daily_profit_cl$margin_cl)
 
 # increase in revenue
-profit_diff<- sum(total_margin_per_machine_cl$total_margin_cl) -sum(total_margin_per_machine$total_margin) #should I make a table to see where is the biggest increase? should I apply diff rates per location?
-percentage_increase<- profit_diff/sum(total_margin_per_machine$total_margin)
+profit_diff<- profit_cl-profit
+avg_percentage_increase_cl<- profit_diff/profit
 
 
 #with the other cost structure
-daily_margin_cl1 <- merged_data[ , margin_cl1:=price/(1+tax_rate) - cost-price*0.03, by = .(machine, category)]
-daily_sales_cl<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine, category)]
 
+daily_sales_cl_fee<-merged_data[ , items_machine_day_cl:=items_machine_day*1.22, by = .(machine,date)]
 
-total_margin_per_machine_cl1<-merged_data[ , .(total_margin_cl1= as.numeric(items_machine_day_cl * margin_cl1)), by = .(machine, category)]
-sum(total_margin_per_machine_cl1$total_margin_cl1)
+daily_profit_cl_fee<- merged_data[, margin_cl_fee:=(price/(1+tax_rate)*items_machine_day_cl) - (cost*items_machine_day_cl)- (0.03*price/(1+tax_rate)*items_machine_day_cl), by=.(machine, date)]
+
+profit_cl_fee<- sum(daily_profit_cl_fee$margin_cl_fee)
+
 
 # increase in revenue
-profit_diff1<- sum(total_margin_per_machine_cl1$total_margin_cl1) -sum(total_margin_per_machine$total_margin) 
-percentage_increase1<- profit_diff1/sum(total_margin_per_machine$total_margin)
+profit_diff_fee<- profit_cl_fee-profit
+percentage_increase_fee<- profit_diff_fee/profit
 
-#how many years to achieve break-even with the 1st cost structure?
+
+
 
 
